@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Five Forces — Play</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+/* ── Reset & base ──────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #fff;
+  min-height: 100vh;
+  color: #1e293b;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+h1, h2, h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* ── Screen management ─────────────────────── */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ── Buttons ───────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px 48px;
+  border: none;
+  border-radius: 18px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.btn:active { transform: scale(0.96); }
+.btn-primary {
+  background: #7c3aed;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(124,58,237,0.3);
+}
+.btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; }
+
+/* ── Join screen ───────────────────────────── */
+#screen-join {
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 40px 24px;
+  background: #7c3aed;
+  text-align: center;
+}
+.join-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 3.2rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+}
+.join-sub { font-size: 1.3rem; color: rgba(255,255,255,0.75); }
+.join-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 360px;
+}
+.join-input {
+  padding: 18px 20px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.join-input::placeholder { color: rgba(255,255,255,0.45); }
+.join-input:focus { border-color: #fff; }
+#input-code { font-size: 2.6rem; letter-spacing: 0.3em; padding: 20px; }
+.join-error { color: #fecaca; font-size: 1.1rem; font-weight: 700; min-height: 26px; }
+
+/* ── Waiting screen ────────────────────────── */
+#screen-waiting {
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 40px 24px;
+  background: #fff;
+  text-align: center;
+}
+.waiting-icon { font-size: 5rem; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+.waiting-title { font-size: 2.4rem; color: #1e293b; font-weight: 800; }
+.waiting-sub { font-size: 1.2rem; color: #64748b; }
+.waiting-code {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #7c3aed;
+  letter-spacing: 0.15em;
+  background: #f5f3ff;
+  border: 3px solid #ddd6fe;
+  border-radius: 14px;
+  padding: 12px 28px;
+}
+
+/* ── Game screen ───────────────────────────── */
+#screen-game {
+  background: #f8fafc;
+  padding-bottom: 100px;
+}
+
+.game-topbar {
+  background: #7c3aed;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.game-round {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.game-score { font-size: 1.15rem; font-weight: 700; color: rgba(255,255,255,0.8); }
+.game-score strong { color: #fff; font-size: 1.3rem; }
+
+.game-timer {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+  padding: 4px 14px;
+  min-width: 56px;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+.game-timer.urgent {
+  color: #fef2f2;
+  background: #dc2626;
+  animation: timerPulse 1s infinite;
+}
+@keyframes timerPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+.scenario-header {
+  background: #fff;
+  padding: 16px 18px;
+  border-bottom: 2px solid #f1f5f9;
+}
+.scenario-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.scenario-emoji { font-size: 2.5rem; }
+.scenario-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+.scenario-toggle {
+  display: none;
+}
+.scenario-narrative {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: #475569;
+  margin-top: 10px;
+  display: block;
+}
+.scenario-narrative strong { color: #7c3aed; font-weight: 700; }
+
+/* ── Five Forces Diagram ───────────────────── */
+.diagram-wrapper {
+  padding: 16px 12px;
+  display: flex;
+  justify-content: center;
+  background: #fff;
+  border-radius: 20px;
+  margin: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 2px solid #f1f5f9;
+}
+.diagram-area {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 1.2 / 1;
+}
+
+.force-zone {
+  position: absolute;
+  border: 3px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 5px 8px;
+  transition: all 0.2s;
+  z-index: 1;
+  overflow-y: auto;
+}
+.force-zone .zone-label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  text-align: center;
+  margin-bottom: 2px;
+  pointer-events: none;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+.force-zone .zone-items {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  width: 100%;
+  min-height: 18px;
+}
+.force-zone.drag-over {
+  border-color: #7c3aed;
+  background: #f5f3ff;
+  box-shadow: 0 0 0 4px rgba(124,58,237,0.12);
+}
+.force-zone.has-items {
+  border-style: solid;
+  border-color: #7c3aed;
+  background: #faf5ff;
+}
+
+/* Zone positioning */
+.zone-rivalry     { width: 38%; height: 30%; top: 35%; left: 31%; }
+.zone-entrants    { width: 34%; height: 34%; top: 0%;  left: 33%; }
+.zone-buyers      { width: 34%; height: 34%; top: 66%; left: 33%; }
+.zone-suppliers   { width: 32%; height: 36%; top: 32%; left: 0%; }
+.zone-substitutes { width: 32%; height: 36%; top: 32%; right: 0%; left: auto; }
+
+/* Zone count badge */
+.zone-count {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #fff;
+  background: #cbd5e1;
+  border-radius: 10px;
+  padding: 1px 8px;
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  pointer-events: none;
+  z-index: 2;
+}
+.force-zone.has-items .zone-count { background: #7c3aed; }
+
+/* Arrows */
+.arrow { position: absolute; z-index: 0; pointer-events: none; }
+.arrow-v { width: 2px; background: #e2e8f0; left: 50%; transform: translateX(-50%); }
+.arrow-h { height: 2px; background: #e2e8f0; top: 50%; transform: translateY(-50%); }
+.arrow-top    { top: 34%; height: 3%; }
+.arrow-bottom { top: 63%; height: 3%; }
+.arrow-left   { left: 29%; width: 4%; }
+.arrow-right  { left: 67%; width: 4%; }
+.arrow::after { content: ''; position: absolute; border: 5px solid transparent; }
+.arrow-top::after    { bottom: 0; left: 50%; transform: translateX(-50%); border-top-color: #e2e8f0; }
+.arrow-bottom::after { top: 0;    left: 50%; transform: translateX(-50%); border-bottom-color: #e2e8f0; }
+.arrow-left::after   { right: 0;  top: 50%;  transform: translateY(-50%); border-left-color: #e2e8f0; }
+.arrow-right::after  { left: 0;   top: 50%;  transform: translateY(-50%); border-right-color: #e2e8f0; }
+
+/* ── Drag items (in tray) ──────────────────── */
+.drag-item {
+  display: inline-block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: #fff;
+  border: 2px solid #ddd6fe;
+  border-radius: 10px;
+  padding: 7px 14px;
+  cursor: grab;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.3;
+  max-width: 100%;
+  transition: transform 0.15s, opacity 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.drag-item:active { cursor: grabbing; }
+.drag-item.dragging { opacity: 0.25; }
+
+/* Dropped items inside zones */
+.dropped-item {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: #fff;
+  border: 2px solid #c4b5fd;
+  border-radius: 7px;
+  padding: 3px 8px;
+  max-width: 96%;
+  text-align: center;
+  word-break: break-word;
+  cursor: grab;
+  line-height: 1.25;
+  flex-shrink: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* Ghost element for touch dragging */
+.drag-ghost {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1e293b;
+  background: #fff;
+  border: 3px solid #7c3aed;
+  border-radius: 12px;
+  padding: 8px 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  white-space: nowrap;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transform: translate(-50%, -50%);
+}
+
+/* ── Tray ──────────────────────────────────── */
+.tray {
+  margin: 0 12px 12px;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 12px;
+  min-height: 70px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.tray-label {
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.tray-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.tray.empty-tray { opacity: 0.35; min-height: 40px; }
+
+/* ── Submit area ───────────────────────────── */
+.submit-area {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 18px;
+  background: #fff;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  z-index: 50;
+  text-align: center;
+}
+.submit-area .btn { width: 100%; max-width: 440px; padding: 18px 44px; font-size: 1.3rem; }
+
+/* ── Results screen ────────────────────────── */
+#screen-results {
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 40px 24px;
+  background: #fff;
+  text-align: center;
+}
+.results-score-big {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 5rem;
+  font-weight: 800;
+  color: #7c3aed;
+}
+.results-label { font-size: 1.4rem; color: #475569; font-weight: 700; }
+.results-detail { font-size: 1.15rem; color: #94a3b8; }
+.results-card {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 20px 24px;
+  width: 100%;
+  max-width: 400px;
+  text-align: left;
+}
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 1.05rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.result-row:last-child { border-bottom: none; }
+.result-row .name { color: #475569; flex: 1; margin-right: 12px; }
+.result-row .badge {
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 8px;
+  color: #fff;
+  flex-shrink: 0;
+}
+.badge-correct { background: #10b981; }
+.badge-wrong { background: #ef4444; }
+.results-waiting { font-size: 1.1rem; color: #94a3b8; font-style: italic; }
+
+/* ── Final screen ──────────────────────────── */
+#screen-final {
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 40px 24px;
+  background: #7c3aed;
+  text-align: center;
+}
+.final-title { font-size: 2.8rem; font-weight: 800; color: #fff; }
+.final-score { font-size: 5rem; font-weight: 800; color: #fff; }
+.final-sub { font-size: 1.2rem; color: rgba(255,255,255,0.7); }
+.final-rank {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #fff;
+  background: rgba(255,255,255,0.15);
+  border: 3px solid rgba(255,255,255,0.25);
+  border-radius: 18px;
+  padding: 18px 36px;
+}
+
+/* ── Confetti ──────────────────────────────── */
+.confetti-piece {
+  position: fixed;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  z-index: 1000;
+  pointer-events: none;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* ── Responsive ────────────────────────────── */
+@media (min-width: 600px) {
+  .diagram-area { max-width: 700px; }
+  .drag-item { font-size: 1.05rem; padding: 8px 16px; }
+  .dropped-item { font-size: 0.88rem; padding: 4px 10px; }
+  .force-zone .zone-label { font-size: 0.88rem; }
+  .scenario-title { font-size: 1.8rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ Join Screen ═════════════════════════════ -->
+<div id="screen-join" class="screen active">
+  <div class="join-title">Five Forces</div>
+  <div class="join-sub">Enter the game PIN shown on screen</div>
+  <div class="join-form">
+    <input type="text" id="input-code" class="join-input" placeholder="PIN"
+           maxlength="4" inputmode="numeric" autocomplete="off">
+    <input type="text" id="input-name" class="join-input" placeholder="Your nickname"
+           maxlength="20" autocomplete="off">
+    <div class="join-error" id="join-error"></div>
+    <button class="btn btn-primary" id="btn-join">Join Game</button>
+  </div>
+</div>
+
+<!-- ══ Waiting Screen ══════════════════════════ -->
+<div id="screen-waiting" class="screen">
+  <div class="waiting-icon">🏭</div>
+  <div class="waiting-title">You're in!</div>
+  <div class="waiting-sub">Waiting for the host to start the game...</div>
+  <div class="waiting-code" id="waiting-code"></div>
+</div>
+
+<!-- ══ Game Screen ═════════════════════════════ -->
+<div id="screen-game" class="screen">
+  <div class="game-topbar">
+    <div class="game-round" id="game-round">Round 1/5</div>
+    <div class="game-timer" id="game-timer">3:00</div>
+    <div class="game-score">Score: <strong id="game-score">0</strong></div>
+  </div>
+  <div class="scenario-header">
+    <div class="scenario-top">
+      <span class="scenario-emoji" id="sc-emoji"></span>
+      <span class="scenario-title" id="sc-title"></span>
+    </div>
+    <button class="scenario-toggle" id="sc-toggle">Read scenario ▼</button>
+    <div class="scenario-narrative" id="sc-narrative"></div>
+  </div>
+
+  <div class="diagram-wrapper">
+    <div class="diagram-area" id="diagram-area">
+      <!-- Arrows -->
+      <div class="arrow arrow-v arrow-top"></div>
+      <div class="arrow arrow-v arrow-bottom"></div>
+      <div class="arrow arrow-h arrow-left"></div>
+      <div class="arrow arrow-h arrow-right"></div>
+
+      <!-- Five force zones -->
+      <div class="force-zone zone-rivalry" data-force="rivalry">
+        <span class="zone-label">Internal<br>Rivalry</span>
+        <span class="zone-count">0</span>
+        <div class="zone-items"></div>
+      </div>
+      <div class="force-zone zone-entrants" data-force="entrants">
+        <span class="zone-label">New<br>Entrants</span>
+        <span class="zone-count">0</span>
+        <div class="zone-items"></div>
+      </div>
+      <div class="force-zone zone-buyers" data-force="buyers">
+        <span class="zone-label">Buyers</span>
+        <span class="zone-count">0</span>
+        <div class="zone-items"></div>
+      </div>
+      <div class="force-zone zone-suppliers" data-force="suppliers">
+        <span class="zone-label">Suppliers</span>
+        <span class="zone-count">0</span>
+        <div class="zone-items"></div>
+      </div>
+      <div class="force-zone zone-substitutes" data-force="substitutes">
+        <span class="zone-label">Substitutes<br>&amp; Complements</span>
+        <span class="zone-count">0</span>
+        <div class="zone-items"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tray" id="tray">
+    <div class="tray-label">Drag players to the correct force ↑</div>
+    <div class="tray-items" id="tray-items"></div>
+  </div>
+
+  <div class="submit-area">
+    <button class="btn btn-primary" id="btn-submit" disabled>Submit Answers</button>
+  </div>
+</div>
+
+<!-- ══ Results Screen ══════════════════════════ -->
+<div id="screen-results" class="screen">
+  <div class="results-label">Round Score</div>
+  <div class="results-score-big" id="results-score">0</div>
+  <div class="results-detail" id="results-detail"></div>
+  <div class="results-card" id="results-card"></div>
+  <div class="results-waiting" id="results-waiting">Waiting for next round...</div>
+</div>
+
+<!-- ══ Final Screen ════════════════════════════ -->
+<div id="screen-final" class="screen">
+  <div class="final-title">Game Over!</div>
+  <div class="final-score" id="final-score">0</div>
+  <div class="final-sub">points</div>
+  <div class="final-rank" id="final-rank"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   FIREBASE
+   ═══════════════════════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyDAydLhj2zrb0d_OCKQg7K0jhiSNwZBoUU",
+  authDomain: "five-forces-game.firebaseapp.com",
+  databaseURL: "https://five-forces-game-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "five-forces-game",
+  storageBucket: "five-forces-game.firebasestorage.app",
+  messagingSenderId: "565256080396",
+  appId: "1:565256080396:web:11897da9cd75fb8f083229"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ═══════════════════════════════════════════════════════════════
+   SCENARIOS
+   ═══════════════════════════════════════════════════════════════ */
+const SCENARIOS = [
+  {
+    id: "airlines", title: "The European Airline Industry", emoji: "✈️",
+    narrative: `The European airline industry has undergone massive transformation since deregulation in the 1990s. What was once a collection of protected national flag carriers is now one of the most contested transport markets in the world, shaped by price wars, capacity battles, and shifting consumer expectations. Margins are thin — even the largest carriers earn only single-digit returns on capital in good years, while fuel costs and regulatory burdens keep pressure on.<br><br><strong>Ryanair and EasyJet</strong> operate point-to-point networks across hundreds of routes with relentless cost discipline. <strong>Lufthansa and Air France-KLM</strong> manage complex hub-and-spoke systems, alliance partnerships (Star Alliance, SkyTeam), and premium cabins. Aircraft orders require years of planning and are placed with <strong>Boeing and Airbus</strong>, who between them build virtually every commercial jet in the world. At congested airports, <strong>airport authorities controlling landing slots</strong> determine who can fly where and when — slots at Heathrow alone trade for tens of millions of dollars.<br><br>On the demand side, <strong>corporate travel departments</strong> aggregate bookings across entire organisations and use that volume to negotiate. <strong>Online travel agencies (Skyscanner, Kayak)</strong> allow any passenger to compare fares in seconds, making brand loyalty difficult to maintain. For journeys under four hours, <strong>high-speed rail (TGV, Eurostar)</strong> offers city-centre-to-city-centre speed that often beats flying. Since 2020, <strong>video conferencing (Zoom, Teams)</strong> has eliminated a meaningful slice of business travel demand entirely. Meanwhile, <strong>Gulf carriers (Emirates, Qatar Airways)</strong> have built massive operations at geographic crossroads, offering competitive connecting itineraries between Europe and Asia. <strong>Ultra-low-cost startups (PLAY, Wizz Air)</strong> continue to launch with even leaner cost structures than existing budget carriers.`,
+    players: [
+      { name: "Ryanair and EasyJet", force: "rivalry" },
+      { name: "Lufthansa and Air France-KLM", force: "rivalry" },
+      { name: "Boeing and Airbus", force: "suppliers" },
+      { name: "Airport authorities (landing slots)", force: "suppliers" },
+      { name: "Corporate travel departments", force: "buyers" },
+      { name: "Online travel agencies (Skyscanner, Kayak)", force: "buyers" },
+      { name: "High-speed rail (TGV, Eurostar)", force: "substitutes" },
+      { name: "Video conferencing (Zoom, Teams)", force: "substitutes" },
+      { name: "Gulf carriers (Emirates, Qatar Airways)", force: "entrants" },
+      { name: "Ultra-low-cost startups (PLAY, Wizz Air)", force: "entrants" }
+    ]
+  },
+  {
+    id: "streaming", title: "The Video Streaming Industry", emoji: "🎬",
+    narrative: `A decade ago, streaming was Netflix's game to lose. Today the industry has fractured into a crowded landscape where profitability remains elusive for most players. The average American household subscribes to four services but regularly cancels and re-subscribes — a phenomenon known as "subscription fatigue." Content budgets have ballooned past $15 billion per year for the biggest platforms, yet subscriber growth has stalled in mature markets. The industry is now pivoting toward ad-supported tiers and live sports rights.<br><br><strong>Netflix</strong> has 250+ million subscribers worldwide and pioneered the binge-release model. <strong>Disney+ and HBO Max</strong> draw on decades of beloved franchises — Marvel, Star Wars, DC, Harry Potter — to attract families and fandoms. <strong>Amazon Prime Video</strong> is bundled with a shopping membership, making its true standalone value hard to isolate. Every platform needs programming, and <strong>major Hollywood studios</strong> control libraries of thousands of titles that audiences expect. <strong>A-list showrunners and directors</strong> like Shonda Rhimes and Ryan Murphy sign exclusive multi-year deals worth hundreds of millions, and their departure can reshape a platform's identity overnight.<br><br><strong>Price-sensitive households</strong> juggle subscriptions month-to-month, signing up for a specific show and cancelling once they've watched it. <strong>Telecom companies bundling streaming</strong> (T-Mobile/Netflix, Vodafone/Disney+) negotiate bulk licensing deals that push per-subscriber revenue down. Meanwhile, consumers' leisure time is finite: <strong>TikTok and YouTube (free content)</strong> capture hours of attention with algorithmically served short-form video, and <strong>mobile gaming (Fortnite, Roblox)</strong> competes for the same evening and weekend hours. <strong>Apple TV+ (deep-pocketed new entrant)</strong> continues to spend aggressively on prestige originals, absorbing years of losses as a rounding error on Apple's balance sheet.`,
+    players: [
+      { name: "Netflix", force: "rivalry" },
+      { name: "Disney+ and HBO Max", force: "rivalry" },
+      { name: "Amazon Prime Video", force: "rivalry" },
+      { name: "Major Hollywood studios", force: "suppliers" },
+      { name: "A-list showrunners and directors", force: "suppliers" },
+      { name: "Price-sensitive households", force: "buyers" },
+      { name: "Telecom companies bundling streaming", force: "buyers" },
+      { name: "TikTok and YouTube (free content)", force: "substitutes" },
+      { name: "Mobile gaming (Fortnite, Roblox)", force: "substitutes" },
+      { name: "Apple TV+ (deep-pocketed new entrant)", force: "entrants" }
+    ]
+  },
+  {
+    id: "supermarkets", title: "The European Supermarket Industry", emoji: "🛒",
+    narrative: `Grocery retailing in Europe is a €2.5 trillion market characterised by razor-thin net margins — typically 2–3% — and extraordinary operational complexity. Chains manage thousands of SKUs, cold-chain logistics, and perishable inventory that must move from farm to shelf within days. Consumer spending on food is relatively stable even in recessions, but shoppers are fiercely value-conscious and will switch stores for a few cents per item. Private-label products now account for 30–40% of sales in many European markets, further intensifying price competition.<br><br><strong>Carrefour and Tesco</strong> operate hypermarkets, supermarkets, and convenience formats across multiple countries. <strong>Lidl and Aldi</strong> run stripped-down stores with limited assortments and aggressive pricing — their expansion has reshaped the competitive landscape everywhere they've opened. On the supply side, <strong>Nestlé, Unilever, and P&G</strong> produce iconic brands that consumers specifically seek out — Nutella, Persil, Pampers — giving these manufacturers significant negotiating weight. <strong>Local farmers and dairy cooperatives</strong> provide fresh produce and regional products; when disputes arise, they can and do withhold supply.<br><br><strong>Price-sensitive families (comparison apps)</strong> use digital tools to track promotions and switch between stores week to week with minimal friction. <strong>Restaurants and hotel chains (B2B)</strong> purchase in bulk through dedicated procurement channels and negotiate hard on price. An increasing share of household food spending now goes to <strong>meal-kit delivery (HelloFresh, Gousto)</strong>, which provides pre-portioned ingredients shipped to the door, and to <strong>fast-food and takeout platforms</strong> like Deliveroo and Uber Eats. <strong>Amazon Fresh</strong> has rolled out same-day grocery delivery in major European cities, leveraging its logistics network. <strong>Rapid grocery delivery startups</strong> such as Getir and Gorillas promise delivery in 10–15 minutes from urban micro-fulfilment centres.`,
+    players: [
+      { name: "Carrefour and Tesco", force: "rivalry" },
+      { name: "Lidl and Aldi", force: "rivalry" },
+      { name: "Nestlé, Unilever, and P&G", force: "suppliers" },
+      { name: "Local farmers and dairy cooperatives", force: "suppliers" },
+      { name: "Price-sensitive families (comparison apps)", force: "buyers" },
+      { name: "Restaurants and hotel chains (B2B)", force: "buyers" },
+      { name: "Meal-kit delivery (HelloFresh, Gousto)", force: "substitutes" },
+      { name: "Fast-food and takeout platforms", force: "substitutes" },
+      { name: "Amazon Fresh", force: "entrants" },
+      { name: "Rapid grocery delivery startups", force: "entrants" }
+    ]
+  },
+  {
+    id: "pharma", title: "The Global Pharmaceutical Industry", emoji: "💊",
+    narrative: `The global pharmaceutical industry generates over $1.5 trillion in annual revenue, yet bringing a single drug to market costs an average of $2.6 billion and takes 10–15 years. Patent protection grants temporary monopoly pricing, but once a patent expires, revenue can collapse by 80% within months. The industry's economics are therefore built on a relentless cycle of R&D investment, blockbuster launches, and patent cliffs. Regulatory requirements from the FDA and EMA add years and billions to development timelines.<br><br><strong>Pfizer and Johnson & Johnson</strong> maintain portfolios spanning oncology, immunology, and vaccines. <strong>Roche and Novartis</strong> are leaders in biologics and precision medicine. The production of active pharmaceutical ingredients depends on <strong>specialized chemical ingredient suppliers</strong> concentrated in a small number of facilities worldwide — qualification of a new supplier can take two years or more. Running the multi-phase clinical trials required for regulatory approval depends on <strong>contract research organizations (CROs)</strong> like IQVIA and Covance, which manage patient recruitment and data across dozens of countries.<br><br>The purchasing landscape is complex. <strong>Hospital purchasing committees</strong> decide which drugs make it onto formularies — the approved lists from which physicians can prescribe. <strong>Government health agencies and insurers</strong> set reimbursement levels and negotiate (or impose) price ceilings, directly determining what a drug actually earns. When patents expire, <strong>generic drug manufacturers (Teva, Mylan)</strong> produce bioequivalent versions at a fraction of the original price. In some therapeutic areas, <strong>alternative and holistic medicine</strong> attracts patients away from pharmaceutical treatments altogether. <strong>Biotech startups (gene & cell therapy)</strong> are developing entirely new modalities — CRISPR-based gene editing, CAR-T cell therapies — that could make traditional drug molecules obsolete. <strong>Big Tech health ventures (Google, Amazon)</strong> are investing in AI-driven drug discovery and direct-to-consumer pharmacy distribution.`,
+    players: [
+      { name: "Pfizer and Johnson & Johnson", force: "rivalry" },
+      { name: "Roche and Novartis", force: "rivalry" },
+      { name: "Specialized chemical ingredient suppliers", force: "suppliers" },
+      { name: "Contract research organizations (CROs)", force: "suppliers" },
+      { name: "Hospital purchasing committees", force: "buyers" },
+      { name: "Government health agencies and insurers", force: "buyers" },
+      { name: "Generic drug manufacturers (Teva, Mylan)", force: "substitutes" },
+      { name: "Alternative and holistic medicine", force: "substitutes" },
+      { name: "Biotech startups (gene & cell therapy)", force: "entrants" },
+      { name: "Big Tech health ventures (Google, Amazon)", force: "entrants" }
+    ]
+  },
+  {
+    id: "ev", title: "The Electric Vehicle Market", emoji: "🚗⚡",
+    narrative: `The global automotive industry is in the midst of its most disruptive transition since the Model T. Electric vehicles accounted for roughly 18% of global new car sales in 2024, up from under 3% in 2019. Governments worldwide are setting deadlines for banning internal combustion engine sales — the EU targets 2035, California by 2035, and several countries even earlier. The shift has redrawn competitive boundaries: traditional manufacturing expertise matters less than software, batteries, and charging ecosystems. Capital requirements remain enormous — a single EV assembly plant costs $2–5 billion.<br><br><strong>Tesla</strong> defined the modern EV category and still leads in brand recognition and software integration. <strong>BYD</strong> has become the world's largest EV manufacturer by volume, with vertically integrated battery production and models priced below $15,000 in China. <strong>Volkswagen and Hyundai</strong> are spending tens of billions to convert their legacy factories and model lineups. On the input side, <strong>CATL and LG Energy Solution (batteries)</strong> produce the majority of the world's EV battery cells — automakers queue for allocation and sign multi-year supply agreements. <strong>Rare-earth mineral miners</strong> control access to lithium, cobalt, and nickel, with extraction concentrated in a handful of countries (Australia, Chile, the DRC).<br><br><strong>Fleet managers and rental car companies</strong> like Hertz and Sixt place orders for thousands of vehicles at once, expecting substantial volume discounts. <strong>Government procurement programs</strong> specify technical requirements (range, charging standards) and offer subsidies that shape which models succeed. Many consumers still weigh EVs against <strong>plug-in hybrids and fuel-efficient cars</strong> — vehicles that cost less upfront and don't require charging infrastructure. In dense cities, <strong>public transit and ride-sharing</strong> services like Uber and Bolt reduce the perceived need for personal vehicle ownership entirely. <strong>Rivian, Lucid, NIO, and XPeng</strong> have each raised billions in capital and are now selling vehicles in North America and Europe.`,
+    players: [
+      { name: "Tesla", force: "rivalry" },
+      { name: "BYD", force: "rivalry" },
+      { name: "Volkswagen and Hyundai", force: "rivalry" },
+      { name: "CATL and LG Energy Solution (batteries)", force: "suppliers" },
+      { name: "Rare-earth mineral miners", force: "suppliers" },
+      { name: "Fleet managers and rental car companies", force: "buyers" },
+      { name: "Government procurement programs", force: "buyers" },
+      { name: "Plug-in hybrids and fuel-efficient cars", force: "substitutes" },
+      { name: "Public transit and ride-sharing", force: "substitutes" },
+      { name: "Rivian, Lucid, NIO, and XPeng", force: "entrants" }
+    ]
+  },
+  {
+    id: "luxury", title: "The Luxury Fashion Industry", emoji: "👜",
+    narrative: `The personal luxury goods market is worth approximately €350 billion and is one of the few industries where higher prices can actually increase demand — a phenomenon economists call "Veblen goods." Brand heritage, craftsmanship narratives, and controlled scarcity are the primary sources of competitive advantage. The industry is unusually concentrated: the top three conglomerates control roughly half of the global market. Margins are extraordinary — operating margins above 25% are common for leading houses — but maintaining them requires constant reinvestment in brand image, flagship stores, and creative direction.<br><br><strong>LVMH (Louis Vuitton, Dior)</strong> is the world's largest luxury group, with over 75 houses spanning fashion, wine, jewellery, and hospitality. <strong>Kering (Gucci, Saint Laurent)</strong> competes directly for the same affluent customers and the same creative talent. <strong>Hermès</strong> follows a different playbook entirely: extreme scarcity, multi-year waitlists, and almost no discounting. The production of luxury goods depends critically on <strong>Italian leather tanneries</strong> in Tuscany's Santa Croce district, where generations of expertise produce materials no factory can replicate. Similarly, <strong>skilled artisan workshops</strong> in France and Italy employ craftspeople who train for years — their expertise is the literal hands behind every handbag, shoe, and coat.<br><br><strong>High-net-worth individuals</strong> — the top 1% of consumers who drive over 40% of luxury spending — expect personalised experiences and can shift allegiances based on a single runway show. <strong>Luxury department stores (Harrods, Rinascente)</strong> control prime physical retail environments and decide which brands get the best floor space and window displays. Consumers are increasingly considering <strong>premium fast-fashion (Zara Studio, COS)</strong>, which offers design-forward pieces at a tenth of the price, and <strong>second-hand luxury platforms (Vestiaire, RealReal)</strong>, where authenticated pre-owned goods circulate at 50–70% discounts. <strong>Digital-native brands (social media)</strong> are building followings of millions on Instagram and TikTok and selling directly, bypassing every traditional distribution channel.`,
+    players: [
+      { name: "LVMH (Louis Vuitton, Dior)", force: "rivalry" },
+      { name: "Kering (Gucci, Saint Laurent)", force: "rivalry" },
+      { name: "Hermès", force: "rivalry" },
+      { name: "Italian leather tanneries", force: "suppliers" },
+      { name: "Skilled artisan workshops", force: "suppliers" },
+      { name: "High-net-worth individuals", force: "buyers" },
+      { name: "Luxury department stores (Harrods, Rinascente)", force: "buyers" },
+      { name: "Premium fast-fashion (Zara Studio, COS)", force: "substitutes" },
+      { name: "Second-hand luxury platforms (Vestiaire, RealReal)", force: "substitutes" },
+      { name: "Digital-native brands (social media)", force: "entrants" }
+    ]
+  },
+  {
+    id: "cloud", title: "The Cloud Computing Industry", emoji: "☁️",
+    narrative: `Cloud computing has become the foundation of the modern digital economy. Worldwide spending on cloud infrastructure exceeded $270 billion in 2024, growing at roughly 20% per year. The industry exhibits extreme economies of scale: running a global network of data centres requires tens of billions in upfront capital, but the marginal cost of serving an additional customer is near zero. This creates a market structure where a small number of hyperscale providers capture the vast majority of revenue. Switching costs are high because applications are often deeply integrated with a specific provider's proprietary APIs and services.<br><br><strong>Amazon Web Services (AWS)</strong> pioneered the market in 2006 and holds approximately 31% share. <strong>Microsoft Azure</strong> leverages its dominance in enterprise software (Office 365, Windows Server) to migrate existing customers. <strong>Google Cloud Platform</strong> differentiates through AI/ML capabilities and data analytics. Building and operating data centres at this scale requires cutting-edge processors, GPUs, and custom silicon from <strong>semiconductor manufacturers (NVIDIA, AMD)</strong> — demand for AI-training chips currently far exceeds supply. The physical infrastructure itself — fibre-optic cables crossing ocean floors, land for massive server farms — is controlled by <strong>undersea cable operators and data centre landlords</strong> like Equinix and Digital Realty.<br><br><strong>Enterprise IT departments and CTOs</strong> decide which cloud providers to use, how much to spend, and increasingly adopt multi-cloud strategies to avoid dependence on any single platform. <strong>Software vendors and system integrators</strong> like Accenture, Deloitte, and SAP build solutions on top of cloud platforms and steer their clients' spending toward their preferred provider. Some organisations choose to keep workloads on <strong>on-premise data centres</strong> — hardware they own and operate in their own buildings — for control, compliance, or cost reasons. Others are exploring <strong>edge computing solutions</strong> that process data closer to where it's generated (factories, vehicles, retail stores) rather than sending everything to a centralised cloud. <strong>Oracle Cloud and Alibaba Cloud</strong> have invested billions to expand beyond their traditional strongholds in database software and Chinese e-commerce respectively, competing for global enterprise contracts.`,
+    players: [
+      { name: "Amazon Web Services (AWS)", force: "rivalry" },
+      { name: "Microsoft Azure", force: "rivalry" },
+      { name: "Google Cloud Platform", force: "rivalry" },
+      { name: "Semiconductor manufacturers (NVIDIA, AMD)", force: "suppliers" },
+      { name: "Undersea cable operators and data centre landlords", force: "suppliers" },
+      { name: "Enterprise IT departments and CTOs", force: "buyers" },
+      { name: "Software vendors and system integrators", force: "buyers" },
+      { name: "On-premise data centres", force: "substitutes" },
+      { name: "Edge computing solutions", force: "substitutes" },
+      { name: "Oracle Cloud and Alibaba Cloud", force: "entrants" }
+    ]
+  },
+  {
+    id: "coffee", title: "The Italian Coffee Shop Market", emoji: "☕",
+    narrative: `Italy consumes roughly 6 billion cups of coffee per year, and the bar (café) is a cornerstone of daily life — a ritual more than a transaction. The average Italian espresso costs €1.10–1.50, a price kept low by intense local competition and cultural expectation. Yet beneath this tradition lies a rapidly evolving market. Consumption patterns are shifting as younger Italians develop tastes for specialty brews, longer café visits, and international formats. The pandemic accelerated at-home consumption, and new concepts are challenging the century-old neighbourhood bar model.<br><br><strong>Traditional neighbourhood bars</strong> — Italy has over 150,000 of them — serve quick stand-up espressos with paper-thin margins and rely on volume and habit. <strong>Starbucks Reserve</strong> entered Milan in 2018 with a dramatic 25,000-square-foot Roastery and has since expanded to Rome and other cities, charging premium prices for an "experience" format. <strong>McCafé (McDonald's)</strong> offers espresso-based drinks at low prices inside 600+ Italian McDonald's locations, appealing to convenience and cost. Coffee bars depend on <strong>major roasters (Lavazza, Illy)</strong>, who not only supply beans but also provide espresso machines, branded cups, and marketing support — relationships that create deep dependencies. The global price of arabica and robusta is set by <strong>global coffee bean traders</strong> on commodity exchanges; a frost in Brazil or drought in Vietnam can move prices 30–40% in weeks.<br><br><strong>Daily commuters and office workers</strong> typically visit the same bar every morning — but with a competing bar on every block, switching takes no effort at all. <strong>Students and remote workers</strong> are a growing segment who value Wi-Fi, power outlets, and an atmosphere conducive to spending hours — something traditional bars rarely offer. An increasing number of Italians now make quality coffee at home using <strong>home espresso machines (Nespresso, De'Longhi)</strong>, with the capsule coffee market growing at double digits annually. Supermarkets and vending machines stock <strong>ready-to-drink canned & bottled coffee</strong> — cold brews and iced lattes from brands like Starbucks, Illy, and local producers. <strong>Third-wave specialty coffee shops</strong> are opening rapidly in Milan, Turin, Florence and Rome, offering single-origin pour-overs, latte art, and an artisanal narrative that appeals to a new generation.`,
+    players: [
+      { name: "Traditional neighbourhood bars", force: "rivalry" },
+      { name: "Starbucks Reserve", force: "rivalry" },
+      { name: "McCafé (McDonald's)", force: "rivalry" },
+      { name: "Major roasters (Lavazza, Illy)", force: "suppliers" },
+      { name: "Global coffee bean traders", force: "suppliers" },
+      { name: "Daily commuters and office workers", force: "buyers" },
+      { name: "Students and remote workers", force: "buyers" },
+      { name: "Home espresso machines (Nespresso, De'Longhi)", force: "substitutes" },
+      { name: "Ready-to-drink canned & bottled coffee", force: "substitutes" },
+      { name: "Third-wave specialty coffee shops", force: "entrants" }
+    ]
+  }
+];
+
+const SCENARIO_MAP = {};
+SCENARIOS.forEach(s => SCENARIO_MAP[s.id] = s);
+
+const FORCES = {
+  rivalry:     { label: "Rivalry" },
+  suppliers:   { label: "Suppliers" },
+  buyers:      { label: "Buyers" },
+  substitutes: { label: "Substitutes & Complements" },
+  entrants:    { label: "Entry" }
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════ */
+let roomCode = null;
+let playerId = null;
+let playerName = null;
+let totalScore = 0;
+let currentRound = -1;
+let currentScenario = null;
+let submitted = false;
+let roomListener = null;
+let dragSrc = null;
+let ghost = null;
+let timerInterval = null;
+
+const $ = id => document.getElementById(id);
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function spawnConfetti(count = 60) {
+  const colors = ['#0d9488','#5eead4','#eab308','#ef4444','#8b5cf6','#f59e0b','#10b981'];
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDuration = (2 + Math.random() * 2) + 's';
+    el.style.animationDelay = Math.random() * 1.5 + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   JOIN GAME
+   ═══════════════════════════════════════════════════════════════ */
+async function joinGame() {
+  const code = $('input-code').value.trim();
+  const name = $('input-name').value.trim();
+  if (!code || code.length !== 4) { $('join-error').textContent = 'Enter a 4-digit PIN'; return; }
+  if (!name) { $('join-error').textContent = 'Enter a nickname'; return; }
+
+  const snap = await db.ref(`rooms/${code}`).once('value');
+  if (!snap.exists()) { $('join-error').textContent = 'Game not found. Check the PIN.'; return; }
+  if (snap.val().status !== 'lobby') { $('join-error').textContent = 'Game already started.'; return; }
+
+  roomCode = code;
+  playerName = name;
+  totalScore = 0;
+  const ref = db.ref(`rooms/${roomCode}/players`).push();
+  playerId = ref.key;
+  await ref.set({ name: playerName, totalScore: 0, joinedAt: firebase.database.ServerValue.TIMESTAMP });
+
+  sessionStorage.setItem('ff_roomCode', roomCode);
+  sessionStorage.setItem('ff_playerId', playerId);
+  sessionStorage.setItem('ff_playerName', playerName);
+
+  $('waiting-code').textContent = `Game PIN: ${roomCode}`;
+  showScreen('screen-waiting');
+  listenForGameState();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LISTEN FOR GAME STATE
+   ═══════════════════════════════════════════════════════════════ */
+function listenForGameState() {
+  if (roomListener) db.ref(`rooms/${roomCode}`).off('value', roomListener);
+
+  roomListener = db.ref(`rooms/${roomCode}`).on('value', snap => {
+    if (!snap.exists()) return;
+    const data = snap.val();
+    const status = data.status;
+    const round = data.currentRound || 0;
+    const scenarios = data.scenarios || [];
+
+    if (status === 'lobby') {
+      if (!$('screen-waiting').classList.contains('active') &&
+          !$('screen-join').classList.contains('active')) {
+        showScreen('screen-waiting');
+      }
+    }
+    else if (status === 'playing') {
+      if (round !== currentRound) {
+        currentRound = round;
+        submitted = false;
+        currentScenario = SCENARIO_MAP[scenarios[currentRound]];
+        showGameScreen();
+        startCountdown(data.timerEnd || 0);
+      }
+    }
+    else if (status === 'reviewing') {
+      if (!submitted) submitAnswers(true);
+      showResultsScreen();
+    }
+    else if (status === 'finished') {
+      showFinalScreen(data);
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GAME SCREEN — DRAG & DROP
+   ═══════════════════════════════════════════════════════════════ */
+function showGameScreen() {
+  if (!currentScenario) return;
+
+  $('game-round').textContent = `Round ${currentRound + 1}/5`;
+  $('game-score').textContent = totalScore;
+  $('sc-emoji').textContent = currentScenario.emoji;
+  $('sc-title').textContent = currentScenario.title;
+  $('sc-narrative').innerHTML = currentScenario.narrative;
+  // Scenario is always visible
+
+  // Clear zones
+  document.querySelectorAll('.force-zone').forEach(zone => {
+    zone.querySelector('.zone-items').innerHTML = '';
+    zone.querySelector('.zone-count').textContent = '0';
+    zone.classList.remove('has-items', 'drag-over');
+  });
+
+  // Build tray items
+  const trayItems = $('tray-items');
+  trayItems.innerHTML = '';
+  const tray = $('tray');
+  tray.classList.remove('empty-tray');
+
+  shuffle(currentScenario.players).forEach(player => {
+    const item = document.createElement('div');
+    item.className = 'drag-item';
+    item.textContent = player.name;
+    item.dataset.player = player.name;
+    item.dataset.force = player.force;
+    item.setAttribute('draggable', 'true');
+    bindDrag(item);
+    trayItems.appendChild(item);
+  });
+
+  $('btn-submit').disabled = true;
+  $('btn-submit').textContent = 'Submit Answers';
+  submitted = false;
+  showScreen('screen-game');
+}
+
+/* ── Drag & Drop engine ────────────────────── */
+const zones = () => document.querySelectorAll('.force-zone');
+
+function place(src, zone) {
+  // Move item into zone as a dropped-item
+  const item = document.createElement('div');
+  item.className = 'dropped-item';
+  item.textContent = src.textContent;
+  item.dataset.player = src.dataset.player;
+  item.dataset.force = src.dataset.force;
+  item.setAttribute('draggable', 'true');
+  bindDrag(item);
+  zone.querySelector('.zone-items').appendChild(item);
+  src.remove();
+  styleZone(zone);
+  refreshSubmit();
+}
+
+function sendBack(src) {
+  // Move item back to tray
+  const item = document.createElement('div');
+  item.className = 'drag-item';
+  item.textContent = src.textContent;
+  item.dataset.player = src.dataset.player;
+  item.dataset.force = src.dataset.force;
+  item.setAttribute('draggable', 'true');
+  bindDrag(item);
+  $('tray-items').appendChild(item);
+
+  const parentZone = src.closest('.force-zone');
+  src.remove();
+  if (parentZone) styleZone(parentZone);
+  $('tray').classList.remove('empty-tray');
+  refreshSubmit();
+}
+
+function styleZone(zone) {
+  const count = zone.querySelector('.zone-items').children.length;
+  zone.querySelector('.zone-count').textContent = count;
+  zone.classList.toggle('has-items', count > 0);
+}
+
+function refreshSubmit() {
+  const inTray = $('tray-items').children.length;
+  $('tray').classList.toggle('empty-tray', inTray === 0);
+  $('btn-submit').disabled = inTray > 0;
+}
+
+function findZoneAt(x, y) {
+  const els = document.elementsFromPoint(x, y);
+  for (const el of els) {
+    if (el.classList.contains('force-zone')) return el;
+    const parent = el.closest('.force-zone');
+    if (parent) return parent;
+  }
+  return null;
+}
+
+function bindDrag(el) {
+  // ── Mouse drag ──
+  el.addEventListener('dragstart', e => {
+    dragSrc = el;
+    el.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', '');
+  });
+  el.addEventListener('dragend', () => {
+    if (dragSrc) dragSrc.classList.remove('dragging');
+    dragSrc = null;
+    zones().forEach(z => z.classList.remove('drag-over'));
+  });
+
+  // ── Touch drag ──
+  let startX, startY, moved;
+
+  el.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    startX = t.clientX;
+    startY = t.clientY;
+    moved = false;
+    dragSrc = el;
+  }, { passive: true });
+
+  el.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (!moved && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+      moved = true;
+      // Create ghost
+      ghost = document.createElement('div');
+      ghost.className = 'drag-ghost';
+      ghost.textContent = el.textContent;
+      document.body.appendChild(ghost);
+      el.classList.add('dragging');
+    }
+
+    if (ghost) {
+      ghost.style.left = t.clientX + 'px';
+      ghost.style.top = t.clientY + 'px';
+
+      // Highlight zone under finger
+      zones().forEach(z => z.classList.remove('drag-over'));
+      const zone = findZoneAt(t.clientX, t.clientY);
+      if (zone) zone.classList.add('drag-over');
+    }
+  }, { passive: false });
+
+  el.addEventListener('touchend', e => {
+    if (ghost) {
+      ghost.remove();
+      ghost = null;
+    }
+    el.classList.remove('dragging');
+    zones().forEach(z => z.classList.remove('drag-over'));
+
+    if (!moved) {
+      // Tap — if in zone, send back to tray
+      if (el.closest('.force-zone')) {
+        sendBack(el);
+      }
+      dragSrc = null;
+      return;
+    }
+
+    const t = e.changedTouches[0];
+    const zone = findZoneAt(t.clientX, t.clientY);
+
+    if (zone) {
+      // If dragging from another zone, send back first
+      const prevZone = dragSrc.closest('.force-zone');
+      if (prevZone && prevZone !== zone) {
+        // Move between zones
+        const item = document.createElement('div');
+        item.className = 'dropped-item';
+        item.textContent = dragSrc.textContent;
+        item.dataset.player = dragSrc.dataset.player;
+        item.dataset.force = dragSrc.dataset.force;
+        item.setAttribute('draggable', 'true');
+        bindDrag(item);
+        zone.querySelector('.zone-items').appendChild(item);
+        dragSrc.remove();
+        styleZone(prevZone);
+        styleZone(zone);
+        refreshSubmit();
+      } else if (!dragSrc.closest('.force-zone')) {
+        // From tray to zone
+        place(dragSrc, zone);
+      }
+    } else if (dragSrc.closest('.force-zone')) {
+      // Dragged out of zone — send back to tray
+      sendBack(dragSrc);
+    }
+
+    dragSrc = null;
+  });
+}
+
+// ── Mouse drop handlers on zones ──
+document.addEventListener('DOMContentLoaded', () => {
+  zones().forEach(zone => {
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', () => {
+      zone.classList.remove('drag-over');
+    });
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      if (!dragSrc) return;
+
+      const prevZone = dragSrc.closest('.force-zone');
+      if (prevZone && prevZone !== zone) {
+        // Zone to zone
+        const item = document.createElement('div');
+        item.className = 'dropped-item';
+        item.textContent = dragSrc.textContent;
+        item.dataset.player = dragSrc.dataset.player;
+        item.dataset.force = dragSrc.dataset.force;
+        item.setAttribute('draggable', 'true');
+        bindDrag(item);
+        zone.querySelector('.zone-items').appendChild(item);
+        dragSrc.remove();
+        styleZone(prevZone);
+        styleZone(zone);
+        refreshSubmit();
+      } else if (!prevZone) {
+        // Tray to zone
+        place(dragSrc, zone);
+      }
+      dragSrc = null;
+    });
+  });
+
+  // Drop on tray = send back
+  $('tray').addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  });
+  $('tray').addEventListener('drop', e => {
+    e.preventDefault();
+    if (dragSrc && dragSrc.closest('.force-zone')) {
+      sendBack(dragSrc);
+    }
+    dragSrc = null;
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   GET ANSWERS FROM DIAGRAM
+   ═══════════════════════════════════════════════════════════════ */
+function getAnswers() {
+  const answers = {};
+  zones().forEach(zone => {
+    const force = zone.dataset.force;
+    zone.querySelectorAll('.dropped-item').forEach(item => {
+      answers[item.dataset.player] = force;
+    });
+  });
+  return answers;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SUBMIT
+   ═══════════════════════════════════════════════════════════════ */
+async function submitAnswers(auto = false) {
+  if (submitted) return;
+  submitted = true;
+
+  const answers = getAnswers();
+
+  await db.ref(`rooms/${roomCode}/players/${playerId}/submissions/${currentRound}`).set({
+    answers: answers,
+    submittedAt: firebase.database.ServerValue.TIMESTAMP
+  });
+
+  if (!auto) {
+    $('btn-submit').textContent = '✓ Submitted!';
+    $('btn-submit').disabled = true;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESULTS SCREEN
+   ═══════════════════════════════════════════════════════════════ */
+async function showResultsScreen() {
+  if (!currentScenario) return;
+
+  // Wait briefly for host to finish scoring, then read from Firebase
+  let pData, roundSub;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const snap = await db.ref(`rooms/${roomCode}/players/${playerId}`).once('value');
+    pData = snap.val() || {};
+    roundSub = (pData.submissions && pData.submissions[currentRound]) || {};
+    if (roundSub.correct != null) break;
+    await new Promise(r => setTimeout(r, 500));
+  }
+  totalScore = pData.totalScore || 0;
+  const correct = (roundSub && roundSub.correct) || 0;
+  const roundScore = (roundSub && roundSub.score) || 0;
+
+  const answers = getAnswers();
+
+  $('results-score').textContent = `${correct}/10`;
+  $('results-detail').textContent = `+${roundScore} points — Total: ${totalScore}`;
+
+  const card = $('results-card');
+  card.innerHTML = '';
+  currentScenario.players.forEach(p => {
+    const isCorrect = answers[p.name] === p.force;
+    const row = document.createElement('div');
+    row.className = 'result-row';
+    row.innerHTML = `
+      <span class="name">${p.name}</span>
+      <span class="badge ${isCorrect ? 'badge-correct' : 'badge-wrong'}">${isCorrect ? '✓ ' + FORCES[p.force].label : '✗ ' + FORCES[p.force].label}</span>
+    `;
+    card.appendChild(row);
+  });
+
+  $('results-waiting').textContent = 'Waiting for next round...';
+  showScreen('screen-results');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FINAL SCREEN
+   ═══════════════════════════════════════════════════════════════ */
+function showFinalScreen(roomData) {
+  const players = roomData.players || {};
+  // Read authoritative total from Firebase
+  if (players[playerId]) totalScore = players[playerId].totalScore || 0;
+  $('final-score').textContent = totalScore;
+  const scores = Object.entries(players)
+    .map(([id, p]) => ({ id, score: p.totalScore || 0 }))
+    .sort((a, b) => b.score - a.score);
+
+  const rank = scores.findIndex(p => p.id === playerId) + 1;
+  const total = scores.length;
+
+  if (rank === 1) {
+    $('final-rank').textContent = `🥇 1st place out of ${total}!`;
+    spawnConfetti();
+  } else if (rank === 2) {
+    $('final-rank').textContent = `🥈 2nd place out of ${total}`;
+  } else if (rank === 3) {
+    $('final-rank').textContent = `🥉 3rd place out of ${total}`;
+  } else {
+    $('final-rank').textContent = `#${rank} out of ${total} players`;
+  }
+
+  showScreen('screen-final');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COUNTDOWN TIMER
+   ═══════════════════════════════════════════════════════════════ */
+function startCountdown(timerEnd) {
+  if (timerInterval) clearInterval(timerInterval);
+  if (!timerEnd) { $('game-timer').textContent = '—'; return; }
+
+  function tick() {
+    const now = Date.now();
+    const remaining = Math.max(0, Math.ceil((timerEnd - now) / 1000));
+    const min = Math.floor(remaining / 60);
+    const sec = remaining % 60;
+    $('game-timer').textContent = `${min}:${String(sec).padStart(2, '0')}`;
+
+    if (remaining <= 30) {
+      $('game-timer').classList.add('urgent');
+    } else {
+      $('game-timer').classList.remove('urgent');
+    }
+
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      if (!submitted) submitAnswers(true);
+    }
+  }
+
+  tick();
+  timerInterval = setInterval(tick, 1000);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EVENT LISTENERS
+   ═══════════════════════════════════════════════════════════════ */
+$('btn-join').addEventListener('click', joinGame);
+$('btn-submit').addEventListener('click', () => submitAnswers(false));
+$('input-code').addEventListener('keydown', e => { if (e.key === 'Enter') $('input-name').focus(); });
+$('input-name').addEventListener('keydown', e => { if (e.key === 'Enter') joinGame(); });
+// Scenario is always visible — no toggle needed
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTO-RECONNECT
+   ═══════════════════════════════════════════════════════════════ */
+(function init() {
+  const savedCode = sessionStorage.getItem('ff_roomCode');
+  const savedId = sessionStorage.getItem('ff_playerId');
+  const savedName = sessionStorage.getItem('ff_playerName');
+
+  if (savedCode && savedId && savedName) {
+    db.ref(`rooms/${savedCode}`).once('value').then(snap => {
+      if (snap.exists() && snap.val().players && snap.val().players[savedId]) {
+        roomCode = savedCode;
+        playerId = savedId;
+        playerName = savedName;
+        totalScore = snap.val().players[savedId].totalScore || 0;
+        currentRound = -1;
+        listenForGameState();
+        if (snap.val().status === 'lobby') {
+          $('waiting-code').textContent = `Game PIN: ${roomCode}`;
+          showScreen('screen-waiting');
+        }
+      } else {
+        sessionStorage.removeItem('ff_roomCode');
+        sessionStorage.removeItem('ff_playerId');
+        sessionStorage.removeItem('ff_playerName');
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>
