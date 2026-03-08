@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Five Forces Assessment Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ──────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f7f8fc;
+  min-height: 100vh; padding: 32px 20px; color: #2d3748;
+}
+.container { max-width: 960px; margin: 0 auto; }
+
+/* ── Header ───────────────────────── */
+h1 {
+  text-align: center; color: #0046AD; font-size: 2rem; font-weight: 800;
+  margin-bottom: 6px; letter-spacing: -0.02em;
+}
+.subtitle {
+  text-align: center; color: #718096; font-size: 1rem;
+  margin-bottom: 28px; line-height: 1.6; max-width: 600px; margin-left: auto; margin-right: auto;
+}
+
+/* ── Nav ───────────────────────────── */
+.nav {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  margin-bottom: 24px; padding: 12px 16px; background: #fff;
+  border-radius: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.nav-btn {
+  padding: 9px 16px; border-radius: 10px; border: 1.5px solid #e2e8f0;
+  background: #fff; color: #718096;
+  font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.nav-btn:hover { background: #eef3ff; border-color: #0046AD; color: #0046AD; }
+.nav-btn.active {
+  background: #0046AD; border-color: #0046AD; color: #fff;
+  box-shadow: 0 2px 8px rgba(0,70,173,0.3);
+}
+
+/* ── Card ──────────────────────────── */
+.card {
+  background: #fff; border-radius: 20px; padding: 36px 32px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 20px; display: none;
+  border: 1px solid #edf2f7;
+}
+.card.active { display: block; }
+
+.section-title {
+  font-size: 1.4rem; font-weight: 800; color: #0046AD;
+  margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
+}
+.section-num {
+  background: #0046AD; color: #fff; width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.88rem; font-weight: 800; flex-shrink: 0;
+}
+.section-desc { font-size: 1rem; color: #718096; margin-bottom: 20px; line-height: 1.6; }
+
+/* ── Form ──────────────────────────── */
+.field { margin-bottom: 16px; }
+.field-label { font-size: 0.95rem; font-weight: 600; color: #4a5568; margin-bottom: 6px; display: block; }
+.field-hint { font-size: 0.88rem; color: #a0aec0; font-style: italic; margin-bottom: 6px; }
+input[type="text"] {
+  width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0;
+  border-radius: 10px; font-size: 1rem; font-family: inherit; color: #2d3748;
+  transition: border-color 0.2s;
+}
+input:focus, select:focus { outline: none; border-color: #0046AD; box-shadow: 0 0 0 3px rgba(0,70,173,0.1); }
+select {
+  padding: 9px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  font-size: 0.95rem; font-family: inherit; background: #fff; color: #2d3748;
+  cursor: pointer; transition: border-color 0.2s;
+}
+select.invalid { border-color: #e53e3e; background: #fff5f5; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
+@media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* ── Likert radio buttons ─────────── */
+.likert-option {
+  display: flex; align-items: center; gap: 8px; padding: 11px 18px;
+  border-radius: 10px; border: 1.5px solid #e2e8f0; background: #fff;
+  cursor: pointer; font-size: 0.95rem; font-weight: 600; color: #4a5568;
+  transition: all 0.2s; user-select: none;
+}
+.likert-option:hover { border-color: #0046AD; background: #eef3ff; }
+.likert-option input[type="radio"] { display: none; }
+.likert-option:has(input:checked) {
+  border-color: #0046AD; background: #0046AD; color: #fff;
+  box-shadow: 0 2px 8px rgba(0,70,173,0.25);
+}
+.likert-option.invalid-likert { border-color: #e53e3e; background: #fff5f5; }
+
+/* ── Description box ───────────────── */
+.desc-box {
+  background: #f7f8fc; border-left: 4px solid #0046AD; border-radius: 0 12px 12px 0;
+  padding: 18px 20px; margin-bottom: 20px; font-size: 0.95rem;
+  line-height: 1.75; color: #4a5568; max-height: 360px; overflow-y: auto;
+}
+.desc-toggle {
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
+  border-radius: 8px; border: 1.5px solid #e2e8f0; background: #fff;
+  font-size: 0.9rem; color: #0046AD; cursor: pointer; margin-bottom: 14px;
+  font-weight: 600; transition: all 0.2s;
+}
+.desc-toggle:hover { background: #eef3ff; border-color: #0046AD; }
+
+/* ── Assessment table ──────────────── */
+.assess-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 16px; border-radius: 12px; overflow: hidden; border: 1px solid #edf2f7; }
+.assess-table th {
+  background: #0046AD; color: #fff; padding: 12px 14px;
+  font-size: 0.9rem; font-weight: 700; text-align: left;
+}
+.assess-table th:nth-child(2) { text-align: center; width: 160px; }
+.assess-table td { padding: 11px 14px; border-bottom: 1px solid #edf2f7; font-size: 0.95rem; vertical-align: middle; }
+.assess-table td:nth-child(2) { text-align: center; }
+.assess-table tr:last-child td { border-bottom: none; }
+.assess-table tr:hover td { background: #f7f8fc; }
+.assess-table select { width: 100%; }
+
+/* ── Price factor toggles ──────────── */
+.factor-row {
+  padding: 12px 14px; border-radius: 12px; margin-bottom: 6px;
+  border: 1.5px solid #edf2f7; display: flex; align-items: center; gap: 14px;
+  cursor: pointer; user-select: none; transition: all 0.2s; background: #fff;
+}
+.factor-row:hover { background: #f7f8fc; border-color: #cbd5e0; }
+.factor-toggle {
+  width: 46px; height: 26px; border-radius: 13px; background: #e2e8f0;
+  position: relative; cursor: pointer; transition: background 0.25s;
+  flex-shrink: 0; border: none;
+}
+.factor-toggle.on { background: #e53e3e; }
+.factor-toggle::after {
+  content: ''; position: absolute; width: 20px; height: 20px;
+  border-radius: 50%; background: #fff; top: 3px; left: 3px;
+  transition: left 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.factor-toggle.on::after { left: 23px; }
+.factor-name { font-size: 0.95rem; font-weight: 600; color: #2d3748; }
+
+/* ── Thermometer ───────────────────── */
+.thermo {
+  text-align: center; padding: 16px 20px; border-radius: 14px;
+  background: #f7f8fc; margin: 16px 0; border: 1px solid #edf2f7;
+}
+.thermo-bar {
+  width: 100%; height: 14px; border-radius: 7px;
+  background: linear-gradient(90deg, #48bb78, #ecc94b, #e53e3e);
+  position: relative; margin-bottom: 6px;
+}
+.thermo-needle {
+  position: absolute; top: -4px; width: 5px; height: 22px;
+  background: #2d3748; border-radius: 3px; transition: left 0.4s;
+}
+.thermo-labels { display: flex; justify-content: space-between; font-size: 0.78rem; color: #a0aec0; font-weight: 500; }
+.thermo-verdict { font-size: 1.05rem; font-weight: 700; margin-top: 6px; }
+
+/* ── Overall row ───────────────────── */
+.overall-row {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 18px; padding-top: 16px; border-top: 2px solid #edf2f7;
+}
+.overall-label { font-size: 1rem; font-weight: 700; color: #0046AD; }
+
+/* ── Buttons ───────────────────────── */
+.btn-row { display: flex; gap: 12px; margin-top: 24px; justify-content: space-between; }
+.btn {
+  padding: 12px 26px; border-radius: 12px; font-size: 0.95rem;
+  font-weight: 700; cursor: pointer; border: none; transition: all 0.2s;
+}
+.btn-primary { background: #0046AD; color: #fff; }
+.btn-primary:hover { background: #003a91; box-shadow: 0 2px 8px rgba(0,70,173,0.25); }
+.btn-secondary { background: #edf2f7; color: #4a5568; }
+.btn-secondary:hover { background: #e2e8f0; }
+.btn-submit {
+  background: linear-gradient(135deg, #0046AD, #2b6cb0); color: #fff;
+  padding: 14px 36px; font-size: 1.05rem;
+  box-shadow: 0 4px 14px rgba(0,70,173,0.3);
+}
+.btn-submit:hover { box-shadow: 0 6px 20px rgba(0,70,173,0.4); transform: translateY(-1px); }
+
+/* ── Validation error ──────────────── */
+.validation-msg {
+  background: #fff5f5; border: 1.5px solid #e53e3e; border-radius: 10px;
+  padding: 12px 16px; margin-bottom: 16px; font-size: 0.95rem; color: #c53030;
+  display: none; font-weight: 500;
+}
+.validation-msg.show { display: block; }
+
+/* ── Report ────────────────────────── */
+#reportView { display: none; }
+#reportView.active { display: block; }
+#formView.hidden { display: none; }
+
+.report-card {
+  background: #fff; border-radius: 20px; padding: 40px 36px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 20px;
+  border: 1px solid #edf2f7;
+}
+
+/* Grade display */
+.grade-display { text-align: center; margin-bottom: 32px; }
+.grade-circle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 110px; height: 110px; border-radius: 50%; font-size: 2.4rem;
+  font-weight: 900; color: #fff; margin-bottom: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.grade-label { font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; }
+.grade-sub { font-size: 1rem; color: #718096; }
+
+/* Report sections */
+.report-section {
+  margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid #edf2f7;
+}
+.report-section:last-child { border-bottom: none; }
+.report-section h3 {
+  font-size: 1.1rem; color: #0046AD; margin-bottom: 12px;
+  padding-bottom: 6px; border-bottom: 2px solid #0046AD;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-score {
+  font-size: 0.82rem; font-weight: 700; padding: 3px 10px;
+  border-radius: 10px; color: #fff; margin-left: auto;
+}
+
+.report-item {
+  display: flex; align-items: flex-start; gap: 10px; padding: 8px 12px;
+  border-radius: 10px; margin-bottom: 4px; font-size: 0.95rem;
+}
+.report-item.correct { background: rgba(72,187,120,0.1); }
+.report-item.wrong { background: rgba(229,62,62,0.1); }
+.ri-icon {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 800; color: #fff; margin-top: 2px;
+}
+.ri-icon.correct { background: #48bb78; }
+.ri-icon.wrong { background: #e53e3e; }
+.ri-text { flex: 1; }
+.ri-label { font-weight: 700; color: #2d3748; font-size: 0.95rem; }
+.ri-answer { font-size: 0.9rem; color: #718096; margin-top: 3px; }
+.ri-expl { font-size: 0.88rem; color: #a0aec0; font-style: italic; margin-top: 3px; line-height: 1.5; }
+
+.report-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+.report-meta {
+  text-align: center; font-size: 1rem; color: #718096; margin-bottom: 20px;
+}
+
+@media print {
+  body { background: #fff; padding: 0; }
+  .nav, .report-actions, footer { display: none !important; }
+  .report-card { box-shadow: none; border: none; padding: 10px 0; }
+  h1, .subtitle { color: #0046AD !important; }
+  .report-section { page-break-inside: avoid; }
+  .grade-circle { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .ri-icon, .section-score, .report-item { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
+
+footer { text-align: center; color: #a0aec0; margin-top: 24px; font-size: 0.9rem; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Five Forces Assessment Quiz</h1>
+  <p class="subtitle">Select an industry, read the description, assess all five forces, and receive a grade with feedback</p>
+  <div class="nav" id="nav"></div>
+
+  <div id="formView">
+    <!-- Section 0: Industry Selection -->
+    <div class="card active" data-section="0">
+      <div class="section-title">Choose Your Industry</div>
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="field"><label class="field-label">Your name (optional)</label><input type="text" id="studentName"></div>
+        <div class="field"><label class="field-label">Date</label><input type="text" id="reportDate"></div>
+      </div>
+      <div class="field">
+        <label class="field-label">Select an industry to analyse</label>
+        <select id="industrySelect" style="width:100%" onchange="selectIndustry()">
+          <option value="">-- Choose an industry --</option>
+        </select>
+      </div>
+      <div id="descriptionArea"></div>
+      <div id="autoFields" style="display:none">
+        <div class="grid-2">
+          <div class="field"><label class="field-label">Product market</label><input type="text" id="productMarket" readonly style="background:#f5f7fa"></div>
+          <div class="field"><label class="field-label">Geographic market</label><input type="text" id="geoMarket" readonly style="background:#f5f7fa"></div>
+        </div>
+      </div>
+      <div class="btn-row" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="goSection(1)">Start Assessment &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Section 1: Internal Rivalry -->
+    <div class="card" data-section="1">
+      <div class="section-title"><span class="section-num">1</span> Internal Rivalry</div>
+      <div id="descToggle1"></div>
+      <h4 style="color:#0046AD;font-size:0.92rem;margin-bottom:8px">Industry Concentration</h4>
+      <div class="field">
+        <label class="field-label">Market structure *</label>
+        <select id="mktStructure"><option value="">-- Select --</option><option>Perfect competition</option><option>Monopolistic competition</option><option>Oligopoly</option><option>Monopoly</option></select>
+      </div>
+      <h4 style="color:#0046AD;font-size:0.92rem;margin:14px 0 8px">Non-Price Competition</h4>
+      <table class="assess-table">
+        <thead><tr><th>Factor</th><th>Assessment *</th></tr></thead>
+        <tbody>
+          <tr><td>Intensity of advertising / branding</td><td><select id="npc_0"><option value="">--</option><option>Low</option><option>Medium</option><option>High</option></select></td></tr>
+          <tr><td>R&D and innovation spending</td><td><select id="npc_1"><option value="">--</option><option>Low</option><option>Medium</option><option>High</option></select></td></tr>
+          <tr><td>Product quality differentiation</td><td><select id="npc_2"><option value="">--</option><option>Low</option><option>Medium</option><option>High</option></select></td></tr>
+        </tbody>
+      </table>
+      <h4 style="color:#0046AD;font-size:0.92rem;margin:14px 0 8px">Price Competition &mdash; The 9 Factors</h4>
+      <div class="field-hint">Toggle each factor ON if it heats up price competition in this industry.</div>
+      <div id="priceFactors"></div>
+      <div class="thermo"><div class="thermo-bar"><div class="thermo-needle" id="thermoNeedle" style="left:0%"></div></div><div class="thermo-labels"><span>Cool</span><span>Warm</span><span>Hot</span><span>Red Hot</span></div><div class="thermo-verdict" id="thermoVerdict">0 / 9</div></div>
+      <div class="overall-row"><span class="overall-label">Overall internal rivalry *</span><select id="overallRivalry"><option value="">--</option><option>Low</option><option>Medium</option><option>High</option></select></div>
+      <div class="btn-row"><button class="btn btn-secondary" onclick="goSection(0)">&larr; Back</button><button class="btn btn-primary" onclick="goSection(2)">Next &rarr;</button></div>
+    </div>
+
+    <!-- Section 2: Entry -->
+    <div class="card" data-section="2">
+      <div class="section-title"><span class="section-num">2</span> Threat of Entry</div>
+      <div id="descToggle2"></div>
+      <div class="section-desc">For each barrier, assess whether it protects incumbents.</div>
+      <table class="assess-table" id="entryTable"><thead><tr><th>Barrier to Entry</th><th>Protects? *</th></tr></thead><tbody></tbody></table>
+      <div class="overall-row"><span class="overall-label">Overall threat of entry *</span><select id="overallEntry"><option value="">--</option><option>Low</option><option>Medium</option><option>High</option></select></div>
+      <div class="btn-row"><button class="btn btn-secondary" onclick="goSection(1)">&larr; Back</button><button class="btn btn-primary" onclick="goSection(3)">Next &rarr;</button></div>
+    </div>
+
+    <!-- Section 3: Subs & Comps -->
+    <div class="card" data-section="3">
+      <div class="section-title"><span class="section-num">3</span> Substitutes & Complements</div>
+      <div id="descToggle3"></div>
+      <div class="section-desc">Assess the characteristics of substitutes and complements, then give an overall judgement for each.</div>
+      <h4 style="color:#0046AD;font-size:1.05rem;margin:0 0 10px;font-weight:700">Substitutes</h4>
+      <table class="assess-table" id="subsTable"><thead><tr><th>Factor</th><th>Assessment *</th></tr></thead><tbody></tbody></table>
+      <div class="overall-row"><span class="overall-label">Overall threat from substitutes *</span><select id="overallSubs"><option value="">--</option><option>Low</option><option>Medium</option><option>High</option></select></div>
+      <h4 style="color:#0046AD;font-size:1.05rem;margin:24px 0 10px;font-weight:700">Complements</h4>
+      <table class="assess-table" id="compsTable"><thead><tr><th>Factor</th><th>Assessment *</th></tr></thead><tbody></tbody></table>
+      <div class="overall-row"><span class="overall-label">Overall contribution of complements *</span><select id="overallComps"><option value="">--</option><option>Negative</option><option>Neutral</option><option>Positive</option></select></div>
+      <div class="btn-row"><button class="btn btn-secondary" onclick="goSection(2)">&larr; Back</button><button class="btn btn-primary" onclick="goSection(4)">Next &rarr;</button></div>
+    </div>
+
+    <!-- Section 4: Supplier Power -->
+    <div class="card" data-section="4">
+      <div class="section-title"><span class="section-num">4</span> Supplier Power</div>
+      <div id="descToggle4"></div>
+      <table class="assess-table" id="supplierTable"><thead><tr><th>Factor</th><th>Assessment *</th></tr></thead><tbody></tbody></table>
+      <div class="overall-row"><span class="overall-label">Overall supplier power *</span><select id="overallSupplier"><option value="">--</option><option>Low</option><option>Medium</option><option>High</option></select></div>
+      <div class="btn-row"><button class="btn btn-secondary" onclick="goSection(3)">&larr; Back</button><button class="btn btn-primary" onclick="goSection(5)">Next &rarr;</button></div>
+    </div>
+
+    <!-- Section 5: Buyer Power -->
+    <div class="card" data-section="5">
+      <div class="section-title"><span class="section-num">5</span> Buyer Power</div>
+      <div id="descToggle5"></div>
+      <table class="assess-table" id="buyerTable"><thead><tr><th>Factor</th><th>Assessment *</th></tr></thead><tbody></tbody></table>
+      <div class="overall-row"><span class="overall-label">Overall buyer power *</span><select id="overallBuyer"><option value="">--</option><option>Low</option><option>Medium</option><option>High</option></select></div>
+      <div class="btn-row"><button class="btn btn-secondary" onclick="goSection(4)">&larr; Back</button><button class="btn btn-primary" onclick="goSection(6)">Next &rarr;</button></div>
+    </div>
+
+    <!-- Section 6: Summary & Profitability -->
+    <div class="card" data-section="6">
+      <div class="section-title"><span class="section-num">&#931;</span> Summary &amp; Industry Profitability</div>
+      <div id="descToggle6"></div>
+      <p class="section-desc">Review your overall assessments for each force below, then give your final judgement on expected industry profitability.</p>
+      <table class="assess-table" id="summaryTable">
+        <thead><tr><th>Force</th><th>Your Assessment</th></tr></thead>
+        <tbody>
+          <tr><td>1. Internal Rivalry</td><td id="sumRivalry" style="color:#999">—</td></tr>
+          <tr><td>2. Threat of Entry</td><td id="sumEntry" style="color:#999">—</td></tr>
+          <tr><td>3a. Threat of Substitutes</td><td id="sumSubs" style="color:#999">—</td></tr>
+          <tr><td>3b. Contribution of Complements</td><td id="sumComps" style="color:#999">—</td></tr>
+          <tr><td>4. Supplier Power</td><td id="sumSupplier" style="color:#999">—</td></tr>
+          <tr><td>5. Buyer Power</td><td id="sumBuyer" style="color:#999">—</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:18px;padding:16px;background:#f5f7fa;border-radius:10px;border-left:4px solid #0046AD">
+        <div class="field-label" style="font-size:0.92rem;margin-bottom:8px">Overall expected industry profitability *</div>
+        <p class="field-hint">Based on the five forces above, how profitable do you expect this industry to be?</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" id="profitabilityOptions">
+          <label class="likert-option"><input type="radio" name="profitability" value="Very Low"><span>Very Low</span></label>
+          <label class="likert-option"><input type="radio" name="profitability" value="Low"><span>Low</span></label>
+          <label class="likert-option"><input type="radio" name="profitability" value="Moderate"><span>Moderate</span></label>
+          <label class="likert-option"><input type="radio" name="profitability" value="High"><span>High</span></label>
+          <label class="likert-option"><input type="radio" name="profitability" value="Very High"><span>Very High</span></label>
+        </div>
+      </div>
+      <div class="validation-msg" id="valMsg"></div>
+      <div class="btn-row"><button class="btn btn-secondary" onclick="goSection(5)">&larr; Back</button><button class="btn btn-submit" onclick="submitQuiz()">Submit Assessment</button></div>
+    </div>
+  </div>
+
+  <div id="reportView"></div>
+  <footer>30402 Principles of Management &mdash; Week 05 Industry Analysis and the Five Forces</footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   FACTOR DEFINITIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+const PF = [
+  {id:'A', label:'A. Many sellers in the market'},
+  {id:'B', label:'B. Stagnant or declining industry'},
+  {id:'C', label:'C. Firms have different costs'},
+  {id:'D', label:'D. Some firms have excess capacity'},
+  {id:'E', label:'E. Undifferentiated products / low switching costs'},
+  {id:'F', label:'F. Prices unobservable or slow to adjust'},
+  {id:'G', label:'G. No price leadership or cooperative pricing'},
+  {id:'H', label:'H. Strong exit barriers'},
+  {id:'I', label:'I. High industry price elasticity of demand'},
+];
+const EB = [
+  'Economies of scale / large MES relative to market size',
+  'Government protection of incumbents',
+  'Consumer value for reputation or brand',
+  'Control of key inputs, technologies, distribution, or locations',
+  'Experience curve advantages',
+  'Network externalities',
+  'Expectations about tough post-entry competition',
+];
+const SubF = [
+  {label:'Availability of substitutes', opts:['Low','Medium','High']},
+  {label:'Price of substitutes relative to industry', opts:['Lower','Similar','Higher']},
+  {label:'Value of substitutes to customers', opts:['Lower','Similar','Higher']},
+];
+const CompF = [
+  {label:'Availability of complements', opts:['Low','Medium','High']},
+  {label:'Price of complements', opts:['Falling','Stable','Rising']},
+  {label:'Value of complements to customers', opts:['Low','Medium','High']},
+];
+const SF = [
+  {label:'Competitiveness of the upstream market', opts:['Low','Medium','High']},
+  {label:'Concentration of suppliers relative to the industry', opts:['Lower','Similar','Higher']},
+  {label:'Volume of the industry’s purchases', opts:['Low','Medium','High']},
+  {label:'Availability of alternative inputs', opts:['Low','Medium','High']},
+  {label:'Relationship-specific investments by industry firms', opts:['Low','Medium','High']},
+  {label:'Threat of forward integration by suppliers', opts:['Low','Medium','High']},
+  {label:'Ability of suppliers to price discriminate', opts:['Low','Medium','High']},
+];
+const BF = [
+  {label:'Competitiveness of the downstream market', opts:['Low','Medium','High']},
+  {label:'Concentration of buyers relative to the industry', opts:['Lower','Similar','Higher']},
+  {label:'Purchase volume of individual buyers', opts:['Low','Medium','High']},
+  {label:'Availability of alternative products for buyers', opts:['Low','Medium','High']},
+  {label:'Relationship-specific investments by industry firms', opts:['Low','Medium','High']},
+  {label:'Threat of backward integration by buyers', opts:['Low','Medium','High']},
+  {label:'Ability of industry to price discriminate', opts:['Low','Medium','High']},
+];
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INDUSTRY DATA (10 scenarios)
+   Each has: title, productMarket, geoMarket, description, answers, feedback
+   Graded items (38 pts): mktStructure(1), priceFactors A-I(9), npc x3(3),
+   overallRivalry(1), entryBarriers x7(7), overallEntry(1), subFactors x3(3),
+   overallSubs(1), compFactors x3(3), overallComps(1), supplier[1,3,5](3),
+   overallSupplier(1), buyer[1,5](2), overallBuyer(1), overallProfitability(1)
+   ═══════════════════════════════════════════════════════════════════════════ */
+const industries = [
+{
+  title: "European Short-Haul Airlines",
+  productMarket: "Scheduled passenger flights under 4 hours",
+  geoMarket: "Europe (EU + UK)",
+  description: `In 2019, when Ryanair CEO Michael O’Leary was asked why European short-haul fares kept falling, he quipped: “Because there are too many of us chasing too few passengers.” The remark captures an industry where more than thirty carriers — from pan-European giants like easyJet and Wizz Air to national champions like Vueling, Eurowings, and Transavia — operate largely overlapping route networks connecting the same city pairs. Ryanair itself flies a standardised all-Boeing 737 fleet and has driven its unit costs to roughly 40% below those of legacy carriers such as Lufthansa and Air France, which still operate short-haul services alongside their intercontinental businesses using a mix of older, less fuel-efficient Airbus narrowbodies. This cost gap is not narrowing: Ryanair’s new 737 MAX deliveries further reduce fuel burn, while legacy carriers struggle with unionised labour and complex hub operations.<br><br>The post-pandemic period brought a wave of fleet expansion. Wizz Air, Norwegian, and several others placed orders for hundreds of new aircraft between 2021 and 2023, betting on a travel rebound. Those planes are now entering service, but passenger traffic on many mature intra-European routes — Milan–Barcelona, London–Amsterdam, Berlin–Rome — has flattened. A traveller booking any of these flights will find essentially identical products: a narrow seat, no free meal, and a carry-on bag allowance. Skyscanner and Google Flights let passengers compare every option in seconds, and switching from one airline to another requires nothing more than a click. Fares are adjusted hundreds of times per day by revenue-management algorithms, each independently optimising for load factor — a process that leaves no room for tacit coordination. The bulk of passengers on these routes are leisure travellers visiting friends, heading to holiday destinations, or taking weekend city breaks — the kind of customers who will rebook an entire trip around a €20 price difference.<br><br>The regulatory landscape in Europe is shaped by the EU’s Open Skies framework, which permits any EU-licensed airline to operate any route within the Union without government approval. Aircraft themselves can be leased from global lessors like AerCap and SMBC on 6–12 year terms, meaning a startup doesn’t need to buy a fleet outright. What a startup does need, however, is access to airports — and at Europe’s busiest hubs, landing slots are a scarce commodity allocated through grandfather rights, meaning incumbent carriers control the prime departure times. At less congested secondary airports (Bergamo, Stansted, Beauvais), access is easier, but these airports serve smaller catchment areas. History shows that whenever a new entrant gains traction on a route, established carriers respond within weeks by adding frequencies and dropping fares — a pattern that has crushed several ambitious startups, including Flybe and Germania. Building the route-network density and operational expertise to compete at scale takes years of learning.<br><br>Passengers who want to travel between European cities have alternatives. France’s TGV connects Paris to Lyon in under two hours; Spain’s AVE links Madrid and Barcelona in 2.5 hours; Germany’s ICE and Italy’s Frecciarossa serve dozens of domestic city pairs at speeds that match or beat door-to-door air travel time. For business meetings, Zoom and Teams have permanently reduced the need to fly. On the other hand, the broader travel ecosystem — hotel chains, car rental companies, Booking.com, Airbnb, and travel insurance providers — all benefit when more people fly, and their marketing efforts actively stimulate demand for air travel.<br><br>On the supply side, every airline in Europe buys or leases its aircraft from the same two manufacturers: Boeing and Airbus. There is no third option for a 180-seat narrowbody. Negotiations are complex, order backlogs stretch for years, and switching between the two requires costly pilot retraining and maintenance infrastructure changes. Neither Boeing nor Airbus has any interest in operating passenger services. The fuel market is a global commodity traded on exchanges. At the other end of the value chain, the customers are overwhelmingly individuals — a retired couple flying to Malaga, a student heading to Erasmus in Lisbon, a family visiting grandparents in Krakow. No single traveller or travel agency accounts for a meaningful share of any airline’s revenue, and the idea of a passenger group chartering its own airline is, of course, fanciful.`,
+  answers: {
+    mktStructure: "Monopolistic competition",
+    priceFactors: ['A','C','D','E','G','I'],
+    npc: ['Medium','Low','Low'],
+    overallRivalry: 'High',
+    entry: ['Partial','No','No','Partial','Partial','No','Yes'],
+    overallEntry: 'Medium',
+    overallSubs: 'Medium',
+    overallComps: 'Positive',
+    sup: {1:'Higher',3:'Low',5:'Low'},
+    overallSupplier: 'Medium',
+    buy: {1:'Lower',5:'Low'},
+    overallBuyer: 'Low',
+    sub: ['Medium', 'Lower', 'Similar'],
+    comp: ['High', 'Falling', 'High'],
+    overallProfitability: 'Low',
+  },
+  feedback: {
+    mktStructure: "30+ carriers with some branding but low differentiation. H well below 0.20.",
+    pf: {
+      A:"Over thirty carriers on overlapping routes — clearly many sellers.",
+      B:"Growth plateaued on some routes but industry overall not declining.",
+      C:"Ryanair’s costs 40% below legacy airlines — stark difference.",
+      D:"New aircraft entering service as growth plateaus — classic excess capacity.",
+      E:"Seats are ‘virtually interchangeable,’ switching in one click.",
+      F:"Prices highly visible on Skyscanner/Google Flights — NOT unobservable.",
+      G:"No carrier sets a reference price; algorithms undercut in real time.",
+      H:"Aircraft can be leased and redeployed — exit barriers are low.",
+      I:"Leisure travellers ‘extremely responsive’ — high elasticity.",
+    },
+    npc: ["Moderate airline branding but most compete on price.","Minimal R&D — airlines use standard aircraft.","Seats are commoditised; quality differences are minor."],
+    rivalry: "6 hot price factors + many sellers = intense price competition.",
+    entry: ["Manageable with leased aircraft, but network scale helps.","Open Skies — no government barriers.","Passengers choose on price, not brand loyalty.","Airport slots at major hubs are scarce and controlled.","Route network optimisation takes time but is not decisive.","No network effects in air travel.","Incumbents flood routes with capacity when challenged."],
+    overallEntry: "Some barriers (slots, aggressive response) but LCCs have entered successfully.",
+    overallSubs: "High-speed rail competes on short routes; video calls replace some business travel.",
+    overallComps: "Hotels, booking platforms, and car rental boost travel demand.",
+    sup: {1:"Boeing/Airbus duopoly vs. 30+ airlines.",3:"Only two narrowbody manufacturers.",5:"Manufacturers don’t operate airlines."},
+    overallSupplier: "Duopoly gives suppliers pricing power but no integration threat.",
+    buy: {1:"Millions of individual travellers — extremely fragmented.",5:"Consumers cannot start airlines."},
+    overallBuyer: "Fragmented individual buyers with no leverage.",
+    sub: [
+      "High-speed rail available on some routes; video calls for some business trips — medium availability.",
+      "Rail prices similar or lower; video calls are free — substitutes are cheaper.",
+      "Rail is competitive on short routes (door-to-door); video calls limited to meetings — similar value overall."
+    ],
+    comp: [
+      "Hotels, Booking.com, Airbnb, car rental widely available everywhere.",
+      "Online booking platforms have driven accommodation and travel costs down.",
+      "The travel ecosystem strongly stimulates demand for air travel."
+    ],
+    profitability: "High rivalry is the dominant force, compounded by medium entry threat, medium substitutes (rail), and medium supplier power (Boeing/Airbus duopoly). Only buyer power is favourable. Overall: low profitability.",
+  }
+},
+{
+  title: "Indian Cement Manufacturing",
+  productMarket: "Ordinary Portland cement and blended cement",
+  geoMarket: "India",
+  description: `Drive along any national highway in Rajasthan or Gujarat and you will pass cement plants every few dozen kilometres — massive rotary kilns rising from the arid landscape, some gleaming and modern, others decades old with visible rust. India’s cement sector is the world’s second largest, producing over 400 million tonnes per year. The roster of producers reads like a phone book: UltraTech (the largest, with about 23% national share), Ambuja Cements, ACC, Shree Cement, Dalmia Bharat, JK Cement, Ramco, Birla Corporation, and dozens more, plus several hundred small grinding units scattered across states from Tamil Nadu to Uttar Pradesh. Prime Minister Modi’s infrastructure push — new expressways, airports, metro systems, smart cities — has kept demand growing at 5–7% annually, yet the industry has chronically overbuilt: in the race to capture future growth, companies have added kiln capacity faster than demand has materialised, leaving average plant utilisation across the country stubbornly stuck around 65–70%.<br><br>Walk into any building-materials shop in India and ask for cement. The dealer will offer you whichever brand is cheapest that week, because a 50-kilogram bag of Ordinary Portland Cement from UltraTech, Ambuja, or a local producer is chemically identical — all must meet the same Bureau of Indian Standards specification. Contractors placing large orders compare quotes from three or four suppliers and go with the lowest price, full stop. But because cement is heavy (a truckload weighs 20–25 tonnes) and expensive to move over long distances, pricing is intensely local: what a dealer in Jaipur charges has little connection to prices in Kolkata, 1,500 kilometres away. Distributors negotiate face to face, and it can take weeks before a competitor in an adjacent state even becomes aware of a price change. Meanwhile, cost structures vary enormously. Shree Cement’s flagship kilns in Beawar, Rajasthan — among the most thermally efficient in the world — consume 20–25% less energy per tonne than older wet-process plants still operating in Jharkhand and Odisha. This is decisive in an industry where energy (coal, pet coke, electricity) accounts for 35–40% of production costs. Industry veterans recall several attempts at informal price coordination among producers in southern and western India, but each time, within a few months, at least one desperate plant broke ranks and offered discounts to fill trucks, triggering a cascade of matching cuts. Nobody has ever succeeded in establishing a national reference price.<br><br>Building a new cement kiln is not for the faint-hearted. A modern integrated plant with a capacity of 2–3 million tonnes per year requires an investment of $150–200 million and takes three to four years from environmental clearance to commissioning. India’s Ministry of Environment, Forest and Climate Change must approve every new plant, a process that involves public hearings, environmental impact assessments, and often judicial challenges by local communities — adding years of uncertainty. Once built, however, a kiln is built to last: with regular maintenance, rotary kilns operate for 40–50 years. The problem is that a cement kiln is a cement kiln — the heavy machinery cannot be repurposed for anything else, and even mothballing a plant involves substantial costs for environmental remediation and security. This means that plants keep running even when they are losing money, because shutting down is more expensive than producing at a loss. Limestone, the primary raw material, occurs naturally only in certain geological formations; several large producers have secured captive mining leases in limestone-rich belts, but new entrants must either acquire their own reserves (a years-long process) or buy clinker on the open market at a premium. There are no meaningful network effects in cement, and brand-building is pointless when the customer cares only about price and timely delivery.<br><br>Structural substitutes for cement in Indian construction are rare: steel framing is used in high-rises but is far more expensive for the low-rise housing that dominates Indian building; timber construction is negligible; fly ash bricks replace some cement use but cannot substitute for structural concrete. The real tailwind for the industry is government policy: every new highway, railway station, and affordable-housing scheme requires thousands of tonnes of cement, and India’s public capital expenditure has doubled in five years. On the input side, the cement industry buys coal and petroleum coke from a fragmented global commodity market with multiple competing suppliers; limestone, as noted, is mostly internally sourced from captive mines. Trucking — the primary mode of cement transport — is provided by hundreds of thousands of small fleet operators competing fiercely for loads. At the sales end, cement moves through a network of roughly 50,000 local dealers, small hardware shops, and building-materials distributors. Government infrastructure projects occasionally consolidate purchasing into large tenders, but the vast majority of cement is bought in small lots by individual contractors and homebuilders who have zero leverage over any producer.`,
+  answers: {
+    mktStructure: "Perfect competition",
+    priceFactors: ['A','C','D','E','F','G','H'],
+    npc: ['Low','Low','Low'],
+    overallRivalry: 'High',
+    entry: ['Yes','Yes','No','Partial','No','No','Partial'],
+    overallEntry: 'Medium',
+    overallSubs: 'Low',
+    overallComps: 'Positive',
+    sup: {1:'Lower',3:'Medium',5:'Low'},
+    overallSupplier: 'Low',
+    buy: {1:'Lower',5:'Low'},
+    overallBuyer: 'Low',
+    sub: ['Low', 'Higher', 'Lower'],
+    comp: ['High', 'Stable', 'High'],
+    overallProfitability: 'Moderate',
+  },
+  feedback: {
+    mktStructure: "40+ producers, hundreds of smaller plants, homogeneous product. H well below 0.10.",
+    pf: {
+      A:"40 major producers + hundreds of smaller plants — many sellers.",
+      B:"Demand growing due to infrastructure boom — NOT stagnant.",
+      C:"Shree’s energy costs 20–25% below average — significant cost differences.",
+      D:"65–70% capacity utilisation — substantial excess capacity.",
+      E:"Cement is ‘chemically indistinguishable’ — textbook commodity.",
+      F:"Regional pricing, weeks for rivals to notice changes — prices slow to propagate.",
+      G:"No national price leader; coordination ‘repeatedly collapsed.’",
+      H:"$150–200M kilns, 40–50 year life, no alternative use — very strong exit barriers.",
+      I:"Demand driven by construction policy, not prices — inelastic.",
+    },
+    npc: ["Commodity — no branding value.","No meaningful R&D in standard cement.","Quality is standardised."],
+    rivalry: "7 active factors = Red Hot. Textbook fierce price competition.",
+    entry: ["$150–200M per kiln — massive capital requirement.","Environmental clearances take years.","No brand value for a commodity.","Limestone deposits geographically limited.","No meaningful experience-curve effect.","No network effects.","Incumbents’ cost advantages create tough expectations."],
+    overallEntry: "High capital and regulatory barriers, but many firms have entered over time.",
+    overallSubs: "Very few alternatives to cement in structural construction.",
+    overallComps: "Infrastructure spending and housing boom drive demand.",
+    sup: {1:"Many coal/pet coke suppliers vs. many cement producers.",3:"Alternative fuels exist.",5:"Coal suppliers don’t make cement."},
+    overallSupplier: "Fragmented commodity suppliers with no leverage.",
+    buy: {1:"Thousands of local dealers and distributors.",5:"Dealers/contractors don’t manufacture cement."},
+    overallBuyer: "Fragmented buyers with no leverage.",
+    sub: [
+      "Steel framing and timber are niche; fly ash bricks cannot replace structural concrete — few real substitutes.",
+      "Steel is far more expensive than cement for equivalent structural use.",
+      "No substitute matches cement's combination of strength, versatility, and cost for Indian construction."
+    ],
+    comp: [
+      "Government infrastructure programmes and housing schemes are abundant and growing.",
+      "Public spending levels are high and stable; no dramatic price swings.",
+      "Every highway, railway station, and housing project directly drives cement demand."
+    ],
+    profitability: "Red-hot rivalry (7/9 factors) devastates margins. However, low substitutes, low supplier and buyer power, and positive complements (government infrastructure) partially offset this. Moderate profitability overall.",
+  }
+},
+{
+  title: "Global Luxury Hotel Chains",
+  productMarket: "Luxury hotels and resorts (5-star+)",
+  geoMarket: "Global",
+  description: `When Aman opened its newest resort in the Swiss Alps in late 2024, the starting rate was CHF 3,200 per night — and it sold out for the entire ski season within three weeks. This anecdote captures a market where scarcity, brand mystique, and affluent demand intersect. The global luxury hotel landscape is shaped by a small constellation of brand families: Four Seasons, Mandarin Oriental, and Aman operate independently, while Marriott International houses its luxury ambitions under the Ritz-Carlton, St. Regis, and W banners; Accor controls Raffles, Fairmont, Sofitel, and the recently revived Orient Express brand; and Hyatt competes through Park Hyatt and Andaz. These six–eight parent groups account for the vast majority of the world’s top-tier hotel inventory. The market has been growing at 8–10% annually, powered by surging wealth in Asia, a post-pandemic appetite for experiential travel, and the emergence of a new generation of ultra-high-net-worth travellers willing to pay for extraordinary experiences.<br><br>What distinguishes this segment from the broader hotel industry is the depth of brand identity. An Aman resort in Bali — all teak pavilions, infinity pools, and silent staff who seem to anticipate your needs before you speak — is a fundamentally different experience from the old-world grandeur of the Ritz-Carlton in Vienna or the modernist minimalism of a Park Hyatt in Tokyo. Guests select properties based on the brand’s aesthetic philosophy, the specific destination, and the individual property’s character; they are not comparison-shopping for the lowest nightly rate. Indeed, attempting to undercut a competitor on price in this segment would signal a loss of prestige. When the Four Seasons raised its average daily rate by 12% across its European portfolio in 2024, the St. Regis and Mandarin Oriental followed with comparable increases within the same season — a rhythm the industry takes for granted. Yet behind the serene facades, a quieter battle plays out every night. Luxury hotels worldwide average about 70% occupancy, meaning roughly three out of every ten rooms go empty. A hotel room is the ultimate perishable product: Tuesday night’s unsold suite generates zero revenue forever. To fill rooms without publicly discounting, hotels maintain confidential corporate rate programmes offering 15–30% off rack rates to major employers like McKinsey, Goldman Sachs, and Google. They also release distressed inventory through opaque online channels — sites like Hotwire, where the guest sees a “5-star hotel in Mayfair” but doesn’t learn the property name until after payment. The result is a pricing landscape where the published rack rate, the corporate rate, the loyalty-programme rate, the OTA rate, and the opaque-channel rate for the same room on the same night can vary by 50% or more, and competitors cannot easily decipher what rivals are actually charging. The core guest — the affluent leisure traveller deciding between the Four Seasons and the Peninsula in Paris — is unlikely to switch for €50.<br><br>Four Seasons and Mandarin Oriental allocate significant budgets to brand advertising in glossy travel magazines, airport lounges, and digital campaigns targeting high-net-worth individuals. Service innovation is continuous: Aman pioneered the “intimate resort” concept; Rosewood invested heavily in its “A Sense of Place” design philosophy. These investments in brand and experience dwarf any emphasis on cost reduction.<br><br>Creating a new luxury hotel is an exercise in patience and capital. Construction runs $1–2 million per room — a 100-key property requires $100–200 million before the first guest checks in. The entire process, from site acquisition through planning permissions, architectural design, interior fit-out, and pre-opening marketing, takes five to seven years. Prime locations — a beachfront plot in the Maldives, a palazzo on Venice’s Grand Canal, a Manhattan block near Central Park — are finite, and the most desirable ones were secured by established brands decades ago. Even if a newcomer could find a suitable site, building the kind of reputation that commands $1,000+ nightly rates takes a generation; guests booking a “new luxury brand” at those prices need overwhelming reassurance. Loyalty programmes such as Marriott Bonvoy and Hyatt’s World of Hyatt create a degree of repeat behaviour, though their influence in the ultra-luxury tier is debated. The combination of capital intensity, location scarcity, and brand heritage makes this one of the harder segments to crack, though boutique operators occasionally succeed in niche markets.<br><br>There are few genuine alternatives to the full-service luxury hotel experience. A handful of ultra-premium Airbnb properties cater to affluent travellers seeking privacy, but they lack the service infrastructure (concierge, spa, fine dining, housekeeping) that defines luxury hospitality. Yacht charters and luxury cruise lines serve a different travel occasion entirely. The broader luxury ecosystem — first-class airlines, Michelin-starred restaurants, fashion houses, and chauffeur services — complements the hotel experience and actively stimulates demand for luxury travel.<br><br>The inputs that a luxury hotel requires — real estate development services, food and beverage suppliers, linen and amenity manufacturers, and skilled hospitality staff — are sourced from fragmented markets in every geography. No single supplier of Egyptian cotton sheets or French bath products has meaningful bargaining power over a hotel chain procuring globally. Hospitality labour is tight in some destinations (Swiss hotel schools produce limited graduates), but hotels invest years in training their own staff. None of these suppliers harbours ambitions to open a competing hotel. On the demand side, the guest base is extraordinarily dispersed: a wealthy retired couple from Texas, a tech entrepreneur from Shenzhen, a Saudi royal family, a London-based investment banker celebrating an anniversary. No individual guest, corporate account, or travel agency represents a significant share of any luxury chain’s revenue. The notion of a guest group backward-integrating into luxury hotel ownership is, for all practical purposes, irrelevant.`,
+  answers: {
+    mktStructure: "Oligopoly",
+    priceFactors: ['D','F','H'],
+    npc: ['High','Medium','High'],
+    overallRivalry: 'Low',
+    entry: ['Yes','Partial','Yes','Yes','Yes','Partial','Partial'],
+    overallEntry: 'Low',
+    overallSubs: 'Low',
+    overallComps: 'Positive',
+    sup: {1:'Lower',3:'Medium',5:'Low'},
+    overallSupplier: 'Low',
+    buy: {1:'Lower',5:'Low'},
+    overallBuyer: 'Low',
+    sub: ['Low', 'Lower', 'Lower'],
+    comp: ['High', 'Stable', 'High'],
+    overallProfitability: 'Very High',
+  },
+  feedback: {
+    mktStructure: "6–8 major brand families dominate. H likely 0.20–0.40.",
+    pf: {
+      A:"Handful of major brand families — NOT many sellers.",
+      B:"Growing 8–10% per year — NOT stagnant.",
+      C:"All face similarly high costs — no significant cost difference.",
+      D:"70% occupancy = 30% empty rooms nightly; perishable product.",
+      E:"‘Fiercely distinct identity’ — highly differentiated.",
+      F:"Confidential rates, opaque channels, variable pricing by channel.",
+      G:"Others ‘follow within a season’ — implicit price leadership EXISTS.",
+      H:"$1–2M/room, decades-long leases, costly conversion — very strong exit barriers.",
+      I:"Affluent guests ‘not price-sensitive’ — low elasticity.",
+    },
+    npc: ["Heavy brand advertising and marketing.","Moderate investment in service and design innovation.","Premium design, service quality, and unique experiences."],
+    rivalry: "Only 3 hot factors = Warm. Differentiation and implicit coordination sustain profits.",
+    entry: ["$1–2M per room and 5–7 year construction timelines.","Planning permits, zoning regulations.","Decades to build a luxury brand.","Prime locations are finite and controlled.","Service excellence takes years to develop.","Loyalty programmes create modest lock-in.","Incumbents’ brand strength deters but doesn’t fully block."],
+    overallEntry: "Very high barriers across multiple dimensions — entry threat is low.",
+    overallSubs: "Ultra-premium Airbnb is niche; no real substitute for the full luxury experience.",
+    overallComps: "Airlines, luxury retail, and fine dining boost luxury travel demand.",
+    sup: {1:"Fragmented developers, F&B suppliers, and labour markets.",3:"Multiple options for most hotel inputs.",5:"Suppliers don’t enter hospitality."},
+    overallSupplier: "Fragmented suppliers with no pricing power or integration threat.",
+    buy: {1:"Millions of affluent individuals, highly fragmented.",5:"Guests cannot build luxury hotels."},
+    overallBuyer: "Fragmented, price-insensitive buyers.",
+    sub: [
+      "Ultra-premium Airbnb is a tiny niche; no real alternative delivers the full luxury experience.",
+      "Premium Airbnb and villa rentals can be cheaper than $1,000+/night luxury hotels.",
+      "Substitutes cannot match the brand prestige, service quality, and curated experience of luxury chains."
+    ],
+    comp: [
+      "First-class airlines, luxury retail, fine dining, and concierge services are widely available.",
+      "Luxury travel ecosystem pricing is relatively stable.",
+      "Airlines, retail, and dining strongly enhance the luxury travel experience and stimulate demand."
+    ],
+    profitability: "Every force is favourable: low rivalry among a differentiated oligopoly, very low entry threat, negligible substitutes, positive complements, and no supplier or buyer power. Textbook high-profitability industry.",
+  }
+},
+{
+  title: "Container Shipping After the Boom",
+  productMarket: "Containerised ocean freight (TEU shipping)",
+  geoMarket: "Global",
+  description: `In the boardroom of Mediterranean Shipping Company’s Geneva headquarters, the mood in early 2025 is markedly different from the champagne-popping days of 2021–22, when container freight rates on the Shanghai–Rotterdam route briefly topped $14,000 per TEU and carriers collectively earned more than $300 billion in profits. The global container shipping industry is structured around three major alliances — 2M (Maersk and MSC), Ocean Alliance (CMA CGM, COSCO, Evergreen), and THE Alliance (Hapag-Lloyd, ONE, HMM, Yang Ming) — which between them operate the vast majority of intercontinental capacity. Beyond the alliance members, several hundred smaller regional carriers serve niche trade lanes connecting secondary ports. During the supply-chain frenzy, carriers placed orders for a record number of mega-vessels: ships capable of carrying over 20,000 TEU, each costing upwards of $200 million. Those ships are now sliding down the slipways of South Korean and Chinese shipyards into an ocean of weakening demand — global trade volumes have fallen roughly 6% from their 2022 peak as post-pandemic destocking, geopolitical tensions, and a sluggish European economy take their toll.<br><br>For the shipper booking container space, this is a commodity transaction. A 40-foot steel box is a 40-foot steel box, whether it sits on an MSC vessel or a Maersk one; what matters is the price per TEU and whether the ship calls at the right ports on schedule. Freight rates are anything but secret: the Shanghai Containerized Freight Index publishes spot rates weekly, and digital platforms like Freightos provide real-time quotes. Historically, the alliances were intended to rationalise capacity and stabilise pricing, but they have come under increasing regulatory scrutiny — the European Commission opened a formal review of alliance block exemptions in 2024 — and have proven unable to prevent aggressive discounting whenever demand softens. The current cost landscape is highly uneven: MSC, having grown rapidly through acquisitions, operates a mixed fleet that includes many older, less fuel-efficient vessels burning heavy fuel oil; Maersk and CMA CGM, by contrast, have invested billions in next-generation dual-fuel methanol-powered ships whose operating costs per TEU are 15–20% lower. A mega container vessel represents a commitment that lasts a quarter of a century — its 25-year economic life means it will still be sailing in 2050. Scrapping a ship that entered service only two or three years ago is virtually inconceivable, and there is simply no alternative commercial use for a 400-metre container ship. Shipping is also structurally necessary for global trade: when freight rates fell 75% from their 2022 peak, the volume of goods shipped barely changed, because manufacturers and retailers have no realistic way to move products from Asia to Europe or North America other than by sea.<br><br>For a newcomer contemplating entry, the numbers are daunting. Assembling a fleet of even a dozen mega-vessels requires north of $2.5 billion. The International Maritime Organisation’s 2023 regulations mandate costly green-technology upgrades for all new builds. Securing terminal berthing windows and feeder-network partnerships with port operators — who are themselves concentrated, with PSA International, APM Terminals, and DP World controlling a large share of global throughput — takes years of negotiation. There is nothing to brand in this business. But should a well-capitalised newcomer attempt entry, history suggests the alliances would swiftly add capacity on the contested routes, cratering rates until the newcomer bleeds cash.<br><br>Air freight, at roughly ten times the cost per kilogram, is a substitute only for the most urgent or highest-value shipments: electronics components needed to restart a factory line, or live lobsters destined for a Hong Kong restaurant. Continental rail (the China–Europe corridor via Kazakhstan) handles a sliver of Eurasian trade but is irrelevant for transoceanic routes. Meanwhile, everything that fuels globalisation — trade finance, customs brokerage, warehousing, logistics software, and the growth of e-commerce — generates more containers that need to cross oceans.<br><br>The shipbuilding industry that supplies the carriers’ most critical asset is concentrated in three countries. South Korea’s Hyundai Heavy Industries and Samsung Heavy, along with China’s CSSC, build the vast majority of large container vessels. Japanese yards (Imabari, JMU) compete for smaller orders. Order backlogs at Korean and Chinese yards stretch three to four years, giving shipbuilders significant leverage over pricing and delivery schedules. No shipyard, however, has ever expressed an interest in owning or operating a shipping line — the business models are entirely different. On the buyer side, shipping services are purchased by a broad range of customers: enormous multinational importers like Walmart, Amazon, and IKEA negotiate annual volume contracts that give them meaningful discounts, while the long tail of small and medium-sized exporters book through freight forwarders and have little individual leverage. A few of the largest shippers have explored chartering their own vessels during the 2021–22 rate spike, but this proved operationally complex and none has pursued it as a permanent strategy.`,
+  answers: {
+    mktStructure: "Oligopoly",
+    priceFactors: ['B','C','D','E','G','H'],
+    npc: ['Low','Medium','Low'],
+    overallRivalry: 'High',
+    entry: ['Yes','Partial','No','Partial','Partial','No','Yes'],
+    overallEntry: 'Low',
+    overallSubs: 'Low',
+    overallComps: 'Positive',
+    sup: {1:'Higher',3:'Low',5:'Low'},
+    overallSupplier: 'Medium',
+    buy: {1:'Similar',5:'Low'},
+    overallBuyer: 'Medium',
+    sub: ['Low', 'Higher', 'Lower'],
+    comp: ['High', 'Stable', 'High'],
+    overallProfitability: 'Moderate',
+  },
+  feedback: {
+    mktStructure: "A dozen major carriers in three alliances. Effective H around 0.20–0.35.",
+    pf: {
+      A:"A dozen major carriers is an oligopoly, not ‘many sellers.’",
+      B:"Trade volumes fell 6% from peak — declining.",
+      C:"MSC’s older fleet vs. Maersk’s modern dual-fuel ships.",
+      D:"Record new vessels into a shrinking market — textbook excess capacity.",
+      E:"A container is standardised; shippers care about price, not brand.",
+      F:"Rates published weekly on indices — highly observable.",
+      G:"Alliances haven’t prevented discounting; coordination is failing.",
+      H:"$200M+ ships, 25-year life, no alternative use — very strong.",
+      I:"Shipping is a necessity for global trade — NOT highly elastic.",
+    },
+    npc: ["No brand marketing in a commodity service.","Moderate investment in green technology and efficiency.","Standardised commodity service."],
+    rivalry: "6 hot factors = Hot. Declining demand + excess capacity + commodity service.",
+    entry: ["Billions needed for a competitive fleet.","IMO environmental regulations add cost.","Brand irrelevant for commodity shipping.","Terminal capacity controlled by alliances.","Network optimisation takes years.","No network externalities.","Alliances respond aggressively to new entrants."],
+    overallEntry: "Extremely high capital barriers and alliance control of terminals.",
+    overallSubs: "No practical substitute for intercontinental containerised trade.",
+    overallComps: "Global trade growth drives demand for shipping.",
+    sup: {1:"3 countries’ shipbuilders vs. a dozen carriers.",3:"Very few shipbuilders globally.",5:"Shipbuilders don’t become shipping lines."},
+    overallSupplier: "Concentrated shipbuilders with some pricing power but no integration threat.",
+    buy: {1:"Mix of large (Walmart, Amazon) and fragmented smaller shippers.",5:"Chartering is impractical for most."},
+    overallBuyer: "Some large buyers have leverage but most shippers are price-takers.",
+    sub: [
+      "Air freight exists but is impractical for bulk goods; rail is limited to continental routes.",
+      "Air freight costs 10-20x more than container shipping per tonne.",
+      "No substitute can match the volume, global reach, and cost efficiency of container shipping."
+    ],
+    comp: [
+      "Global trade agreements, port infrastructure, and logistics networks are extensive.",
+      "Trade infrastructure investment is steady and ongoing.",
+      "Growing global trade directly increases demand for container shipping."
+    ],
+    profitability: "High rivalry (excess capacity + declining volumes) is the key negative, offset by very low entry threat and negligible substitutes. Medium supplier and buyer power are mixed. Overall: moderate profitability, cyclical.",
+  }
+},
+{
+  title: "US Subscription Streaming Video",
+  productMarket: "Subscription video-on-demand (SVOD)",
+  geoMarket: "United States",
+  description: `On a Tuesday evening in suburban Atlanta, the Patel family scrolls through their streaming options: Netflix, Disney+, and Max are all active on their smart TV; Amazon Prime Video is bundled with the shipping membership they already pay for; the kids have been asking about Peacock for Premier League football; and a colleague at work won’t stop recommending a show on Apple TV+. By the time they settle on something to watch, twenty minutes have passed. This scene, replicated in roughly 130 million American households, captures an industry that has matured from a Netflix monopoly into a crowded battlefield. The major services — Netflix, Amazon Prime Video, Disney+, Max (formerly HBO Max), Apple TV+, Peacock, Paramount+, Hulu, and a handful of smaller niche players like Shudder and BritBox — jostle for a share of household entertainment budgets that are, increasingly, maxed out. After a decade of double-digit subscriber growth, the total number of US SVOD subscriptions has plateaued; industry research firms estimate that the average American household subscribes to 3.9 services, down from a peak of 4.3 in 2022, as “subscription fatigue” drives consumers to periodically cull their roster.<br><br>The competitive weapons in this war are content and brand. Netflix poured $17 billion into content in 2024, producing global hits like the latest season of “Squid Game” and the film adaptation of a bestselling thriller that dominated social media for weeks. Disney+ leans on the Marvel, Star Wars, and Pixar franchises. Max bets on prestige HBO dramas. Apple TV+ produces critically acclaimed but lower-volume programming like “Severance” and “The Morning Show.” Between blockbuster release windows, however, the libraries blur together: a catalogue of older movies, reality shows, and mid-tier originals that feels interchangeable across platforms. Every service posts its monthly price prominently on its website — Netflix at $15.49, Disney+ at $13.99, Max at $16.99 — and comparison articles on The Verge and CNET rank them weekly. When Disney+ launched a $1.99-per-month promotional offer in late 2024, Netflix responded within a month with a similar trial discount; Apple TV+ has run $0.99 introductory campaigns repeatedly. No single service has established itself as the one that sets prices for the industry; instead, each watches the others and experiments with promotional undercuts. Cancelling is frictionless: three taps on an iPhone and the subscription is gone; signing up for a competitor takes just as long. Many households now practise “service rotation,” subscribing to one platform for a month to binge a new series, then cancelling and switching to another.<br><br>The economics of operating a streaming service are strikingly uneven. Apple, the world’s most valuable company, treats Apple TV+ as a feature of its hardware ecosystem — a reason to stay in the Apple universe — and is widely believed to operate it at a substantial loss. Amazon bundles Prime Video with its $139/year retail membership, effectively subsidising streaming through e-commerce margins. Netflix, by contrast, must fund its entire content slate from subscription revenue alone, and Paramount+ and Peacock are backed by media conglomerates still transitioning from legacy television. A content library is a peculiar asset: the billions spent producing shows and films have no salvage value outside the platform. You cannot sell a half-finished season of a cancelled series to anyone, and licensing completed shows to a rival undermines the very exclusivity that justifies the investment. These sunk costs make walking away from the business extraordinarily painful — shutting down a streaming service means writing off everything. Producing streaming content — from concept to screen — increasingly requires access to billion-dollar production budgets and relationships with talent agencies (CAA, WME, UTA) that represent the industry’s most bankable directors and actors.<br><br>What makes the streaming landscape unusual is that several of the industry’s key content suppliers have decided to compete directly with their former distribution clients. The Walt Disney Company, which once licensed Marvel films to Netflix, launched Disney+ and pulled its entire catalogue in-house. Warner Bros. Discovery did the same with Max. Paramount Global followed suit. This means that the suppliers of premium content — major Hollywood studios, sports leagues, and A-list showrunners — are not passive vendors but active competitors, and the remaining independent content is contested fiercely. For producers who have not vertically integrated, their scarcity gives them significant leverage: a Ryan Murphy or a Shonda Rhimes can command nine-figure overall deals because only a handful of creatives reliably produce hits.<br><br>The alternatives competing for the same leisure hours are numerous. YouTube, entirely free and ad-supported, commands more viewing time than any single paid service; TikTok captures younger audiences; Tubi and Pluto TV offer free ad-supported movies and shows; traditional broadcast television still draws tens of millions of viewers for live sports and news; and video games — from Fortnite to Baldur’s Gate — consume an ever-growing share of the entertainment occasion. On the complementary side, the ubiquity of smart TVs (now in over 85% of US homes), affordable streaming sticks from Roku and Amazon, and reliable broadband have made it effortless to sign up and watch, reducing barriers to both adoption and, paradoxically, churn. The person paying the streaming bill is an individual consumer or a household — one of 130 million in the US. No single subscriber, no cable bundle, and no advertising buyer constitutes a meaningful fraction of any platform’s revenue, and the notion of viewers producing their own professional-grade content at scale is the domain of YouTube creators, not a structural threat.`,
+  answers: {
+    mktStructure: "Monopolistic competition",
+    priceFactors: ['A','B','C','E','G','H'],
+    npc: ['High','High','High'],
+    overallRivalry: 'High',
+    entry: ['Yes','No','Partial','Partial','Partial','Partial','Yes'],
+    overallEntry: 'Medium',
+    overallSubs: 'High',
+    overallComps: 'Positive',
+    sup: {1:'Higher',3:'Low',5:'High'},
+    overallSupplier: 'High',
+    buy: {1:'Lower',5:'Low'},
+    overallBuyer: 'Low',
+    sub: ['High', 'Lower', 'Similar'],
+    comp: ['High', 'Falling', 'High'],
+    overallProfitability: 'Very Low',
+  },
+  feedback: {
+    mktStructure: "8+ services with differentiated content libraries. H below 0.20.",
+    pf: {
+      A:"8 named services plus smaller ones — many sellers.",
+      B:"Subscriptions have ‘stagnated’ and fatigue is growing.",
+      C:"Apple subsidises, Amazon bundles, Netflix must self-fund — very different structures.",
+      D:"Content is sunk cost, not idle capacity. NOT traditional excess capacity.",
+      E:"Between hits, services look similar; switching takes 2 minutes.",
+      F:"Prices prominently posted — highly observable.",
+      G:"No price leader; promotional poaching is the norm.",
+      H:"Billions in content with no residual value outside the platform.",
+      I:"Streaming is a small expense; industry demand not described as highly elastic.",
+    },
+    npc: ["Massive marketing budgets for content promotion.","Billions in content production, UI, and algorithm development.","Exclusive original content is the primary differentiator."],
+    rivalry: "6 hot factors + intense non-price competition = very high rivalry.",
+    entry: ["$10–17B/year content investment.","No government barriers to streaming.","Netflix has brand strength but newcomers have entered.","Exclusive content deals create partial control.","Recommendation algorithms take time to develop.","More subscribers fund more content (modest network effect).","Incumbents wage content-spending wars."],
+    overallEntry: "Extremely high capital requirements but tech giants can cross-subsidise.",
+    overallSubs: "YouTube, TikTok, gaming, social media all compete for the entertainment occasion.",
+    overallComps: "Smart TVs and broadband make streaming effortless.",
+    sup: {1:"Hollywood studios concentrated; star talent is scarce.",3:"Premium content creators are limited.",5:"Disney, Paramount, and Warner have forward-integrated into streaming."},
+    overallSupplier: "Concentrated studios that have forward-integrated give suppliers high power.",
+    buy: {1:"~130M individual households.",5:"Consumers cannot produce streaming content."},
+    overallBuyer: "Extremely fragmented individual consumers.",
+    sub: [
+      "YouTube, TikTok, gaming, social media — abundant free alternatives for entertainment.",
+      "Most substitutes (YouTube, TikTok, social media) are free — much lower price.",
+      "These alternatives compete effectively for the same entertainment time and attention."
+    ],
+    comp: [
+      "Smart TVs, broadband, mobile devices are ubiquitous.",
+      "Smart TV and broadband prices continue to fall, making streaming more accessible.",
+      "Better devices and faster internet dramatically enhance the streaming experience."
+    ],
+    profitability: "High rivalry, high substitutes (free entertainment), and high supplier power (forward-integrated studios) all erode profits. Medium entry threat adds pressure. Only low buyer power is favourable. Very low profitability — most platforms are losing money.",
+  }
+},
+{
+  title: "Premium Smartphone Manufacturing",
+  productMarket: "Smartphones priced above $600",
+  geoMarket: "Global",
+  description: `Each September, a ritual unfolds at Apple Park in Cupertino. Tim Cook takes the stage, reveals the latest iPhone, and within hours, millions of pre-orders pour in. Samsung responds within weeks from its campus in Suwon with the next Galaxy S or Z Fold, and a handful of other contenders — Google’s Pixel, OnePlus, and (in markets where it is not sanctioned) Huawei — jockey for the remaining sliver of the premium segment. In the market for smartphones priced above $600, Apple commands roughly 45% of global revenue and Samsung approximately 30%; together they account for three-quarters of the pie. The remaining quarter is fragmented among players who have struggled to break through despite significant investment — Google’s Pixel, backed by one of the world’s deepest corporate treasuries, has captured less than 5% of the premium segment after nearly a decade of effort.<br><br>The competitive dynamics in premium smartphones revolve almost entirely around innovation, ecosystem, and brand prestige. Samsung allocates over $20 billion annually to R&D across its semiconductor and device divisions; Apple invested $30 billion in 2024, yielding custom-designed processors (the A-series and M-series) that consistently outperform competitors in benchmark tests. Apple’s vertically integrated chip design gives it a structural cost advantage in silicon, though the company channels this into margins rather than price reductions — iPhone gross margins hover around 40%, among the highest in consumer electronics. Marketing budgets are enormous: Samsung alone spends over $10 billion worldwide on advertising, sponsoring everything from the Olympics to K-pop stars; Apple’s product launches generate billions in free media coverage, supplemented by precisely crafted campaigns that emphasise design and lifestyle rather than specifications.<br><br>What truly insulates these firms is ecosystem lock-in. An iPhone user lives within a walled garden of iCloud storage, iMessage (which turns green and loses features when texting an Android user, a deliberate friction), AirPods that pair seamlessly, an Apple Watch that only works with iPhone, and an App Store where years of purchased apps reside. Migrating to Samsung means re-downloading every app, reconfiguring cloud storage, abandoning iMessage group chats, and often replacing accessories. The process takes hours and results in a degraded experience during transition. Samsung has built its own gravity well through Galaxy Watch, SmartThings, and Samsung Pay, though the lock-in is somewhat less total because it operates within the open Android ecosystem. When Apple announces a new iPhone at $1,199, Samsung positions the comparable Galaxy S at a similar price point within the same band — a cadence the industry has followed for a decade. Neither firm has an incentive to undercut the other when both enjoy healthy margins, and price reductions would only cannibalise revenue on a product with a limited upgrade cycle (consumers replace their phones every 2–3 years).<br><br>The obstacles facing a would-be challenger are formidable. Developing a competitive mobile processor requires access to TSMC’s most advanced fabrication nodes (currently 3nm), which are allocated years in advance to Apple and Qualcomm; designing the chip itself demands teams of hundreds of semiconductor engineers and billions in cumulative R&D. Carriers and major retailers (Best Buy, MediaMarkt) allocate shelf space and promotional support proportional to proven sales volume, creating a chicken-and-egg problem for newcomers. Perhaps most critically, the app ecosystem creates a self-reinforcing cycle: developers prioritise iOS and mainstream Android devices because that is where the users are, and users gravitate to platforms with the best apps. A new entrant with a novel operating system would face an app desert, as Microsoft discovered when it abandoned Windows Phone in 2017. Patents on essential technologies (5G modems, display interfaces, camera systems) further raise the bar, and incumbents have shown willingness to engage in aggressive legal battles to protect their intellectual property.<br><br>There is no product that substitutes for what a smartphone does. A tablet can handle media consumption and video calls but cannot replace the communication, navigation, and always-in-pocket utility of a phone. Smartwatches and wireless earbuds, far from competing with smartphones, are complements that deepen the user’s investment in the ecosystem and make the phone more indispensable. The supply chain that feeds the premium smartphone industry is remarkably concentrated at its most critical points. TSMC in Taiwan fabricates the vast majority of the world’s most advanced processors; Samsung’s foundry division is the only meaningful alternative, and it is also a competitor in the finished-product market. OLED displays come primarily from Samsung Display and LG Display. Memory chips (DRAM and NAND) are produced by just three firms: Samsung, SK Hynix, and Micron. During cyclical capacity crunches, these suppliers command premium prices and prioritise their largest, most reliable customers. Notably, TSMC’s chairman has publicly and repeatedly stated that the company will never enter the consumer-electronics market — it views itself as a “sacred foundry” serving all customers neutrally. On the demand side, the buyer is an individual consumer making a once-every-two-or-three-years purchase — one of over a billion global smartphone users. Mobile carriers once wielded significant power through device subsidies and exclusive launch agreements, but the global shift toward unlocked, direct-purchase models and eSIM technology has diminished their role. No consumer group or corporate buyer has the scale or the technical capability to manufacture its own smartphone.`,
+  answers: {
+    mktStructure: "Oligopoly",
+    priceFactors: [],
+    npc: ['High','High','High'],
+    overallRivalry: 'Medium',
+    entry: ['Yes','No','Yes','Partial','Yes','Yes','Yes'],
+    overallEntry: 'Low',
+    overallSubs: 'Low',
+    overallComps: 'Positive',
+    sup: {1:'Higher',3:'Low',5:'Low'},
+    overallSupplier: 'Medium',
+    buy: {1:'Lower',5:'Low'},
+    overallBuyer: 'Low',
+    sub: ['Low', 'Lower', 'Lower'],
+    comp: ['High', 'Falling', 'High'],
+    overallProfitability: 'High',
+  },
+  feedback: {
+    mktStructure: "Apple ~45%, Samsung ~30%. H exceeds 0.30 — clear oligopoly.",
+    pf: {
+      A:"Just 2 dominant firms + a few niche players — NOT many sellers.",
+      B:"Premium segment grows steadily with upgrade cycles.",
+      C:"Cost differences exist but firms maintain premium pricing, not competing on cost.",
+      D:"Production tightly managed — no excess capacity.",
+      E:"Ecosystem lock-in creates high switching costs; products are differentiated.",
+      F:"Prices prominently displayed at public launch events.",
+      G:"Apple sets pricing tone, Samsung follows — implicit price leadership.",
+      H:"High R&D is sunk, but firms can exit (LG left smartphones in 2021).",
+      I:"Premium buyers are not price-sensitive.",
+    },
+    npc: ["Samsung spends $10B+ on marketing; Apple invests heavily in brand.","$20–30B in annual R&D from top players.","Distinct design, OS, and ecosystem differentiation."],
+    rivalry: "0 hot price factors = Cool, but intense non-price competition. Medium overall.",
+    entry: ["Billions in processor R&D and manufacturing scale.","No government barriers.","Apple and Samsung brands are extremely strong.","Custom chips, carrier relationships.","Years of platform and design iteration.","App ecosystems create strong lock-in for developers and users.","Incumbents match new entrants (Google Pixel struggles at <5%)."],
+    overallEntry: "Very high barriers across technology, brand, and ecosystems.",
+    overallSubs: "No real substitute for a smartphone’s core functions.",
+    overallComps: "Wearables and accessories strengthen the ecosystem.",
+    sup: {1:"TSMC/Samsung Display duopoly vs. a few phone makers.",3:"Very few advanced chip fabricators.",5:"TSMC explicitly ruled out consumer products."},
+    overallSupplier: "Concentrated but non-threatening suppliers. Custom chips reduce dependence.",
+    buy: {1:"Hundreds of millions of individual consumers.",5:"Consumers cannot manufacture smartphones."},
+    overallBuyer: "Fragmented individual buyers with no leverage.",
+    sub: [
+      "No device replaces a smartphone's core functions — few meaningful substitutes.",
+      "Feature phones and basic alternatives are cheaper but irrelevant to premium buyers.",
+      "Nothing matches the smartphone's combination of communication, computing, and ecosystem."
+    ],
+    comp: [
+      "Wearables, wireless earbuds, app stores, and accessories are widely available.",
+      "Accessory and wearable prices have been declining as the market scales.",
+      "The ecosystem of apps, wearables, and accessories strongly reinforces smartphone value."
+    ],
+    profitability: "Medium rivalry (intense non-price, cool price competition), very low entry threat, low substitutes, positive complements, and low buyer power. Only medium supplier power is a minor concern. High profitability — Apple's 45%+ margins confirm this.",
+  }
+},
+{
+  title: "European Generic Pharmaceuticals",
+  productMarket: "Off-patent prescription drugs (generic medicines)",
+  geoMarket: "Europe",
+  description: `When a blockbuster drug like Pfizer’s Lipitor loses patent protection, a peculiar race begins. Within months, dozens of pharmaceutical manufacturers file abbreviated marketing authorisations with the European Medicines Agency or national regulators, each seeking to produce a bioequivalent copy of the original molecule. In Europe’s generic pharmaceutical market, the competitors range from global giants — Teva Pharmaceutical (Israel), Sandoz (the generics arm of Novartis, recently spun off), Viatris (formed from the Mylan–Upjohn merger), and Stada (now owned by Bain Capital) — to dozens of national producers in Germany, Poland, Spain, and Italy, and increasingly to Indian multinationals like Dr. Reddy’s, Cipla, Sun Pharma, and Aurobindo, which have been aggressively expanding their European filings. All told, more than 200 companies compete across the European generics landscape.<br><br>The nature of the product is defined by regulation. A generic atorvastatin — or omeprazole, or metformin, or any of the hundreds of off-patent molecules available — must demonstrate bioequivalence to the originator drug through clinical studies submitted to regulators. Once approved, the generic is legally interchangeable with the branded original. A pharmacist in Munich handing a patient a box of generic atorvastatin from Teva is dispensing a product that is, by regulatory definition, therapeutically identical to one from Sandoz, Stada, or an Indian manufacturer. In many European countries, pharmacists are legally required or financially incentivised to substitute the cheapest available generic. What determines which company wins the sale is, in most cases, a single variable: price. In Germany, statutory health insurers (the “Krankenkassen”) conduct tender processes in which manufacturers submit sealed bids; the lowest bidder wins an exclusive contract to supply an entire region, sometimes for two or three years. The Dutch and Scandinavian systems operate similarly. These tenders have driven prices for common generics down by 80–90% from the original branded level, and the trajectory is relentlessly downward.<br><br>The cost of producing a generic tablet varies enormously depending on where it is made. A factory in Hyderabad or Ahmedabad can manufacture a finished-dose generic at 30–50% below the cost of a comparable European plant, thanks to lower labour, energy, and regulatory-compliance costs. European manufacturers counter with faster delivery times, proximity to distribution networks, and a track record of regulatory reliability — advantages that matter less in a tender system where the only criterion is price. Across the global generics industry, manufacturing plants routinely operate at only 60–70% of capacity: companies have built facilities in anticipation of winning tenders that sometimes go to a lower-cost rival. Each tender is an independent event with no reference to previous pricing, and there is no firm whose pricing other companies look to as a benchmark. Plants that specialise in common oral solid dosages (tablets, capsules) can, with 12–18 months of regulatory recertification, be converted to produce different drug categories, providing a pathway out of an unprofitable product line.<br><br>The barriers to entering the generic pharmaceutical industry are, relative to other pharma segments, modest. Obtaining regulatory approval for a generic requires conducting bioequivalence studies and filing an abbreviated marketing authorisation — a process that typically costs €1–5 million per molecule and takes one to two years, a fraction of the time and cost needed to develop an original drug. Manufacturing must comply with Good Manufacturing Practice (GMP) standards and pass inspections by European regulators, which requires certified facilities but not the cutting-edge technology demanded by biotech. Complex generics — biosimilars, injectable formulations, transdermal patches — are a different matter, requiring significantly more investment and expertise. For standard oral solid generics, however, the path from filing to market is well-trodden, and new entrants appear regularly. There is nothing to brand in this market: no pharmacist chooses a generic metformin because of its logo or marketing campaign.<br><br>Patients who need atorvastatin to control their cholesterol have limited alternatives — they need the medication, and branded versions of the same molecule cost many times more, making them an impractical substitute rather than a competitive alternative. The healthcare systems in which generics operate (hospitals, pharmacies, insurance frameworks) provide the infrastructure for distribution but do not themselves generate additional demand beyond what clinical guidelines dictate.<br><br>The most critical input in generic manufacturing is the active pharmaceutical ingredient (API), and here the global supply chain has a notable geographic concentration. Roughly 60% of the world’s APIs are produced in India and China, in a network of chemical plants clustered around Hyderabad, Gujarat, Zhejiang, and Shandong. For widely used molecules like metformin or amoxicillin, multiple API suppliers compete, and switching between them is straightforward. For niche molecules — certain oncology compounds, complex steroids, or rarely used antibiotics — the global supply base can narrow to just two or three manufacturers, creating acute vulnerability if one shuts down for maintenance or regulatory issues (as happened during COVID-19, when API shortages disrupted European pharmacy supplies for months). Several Indian API manufacturers, notably Sun Pharma and Aurobindo, have expanded downstream into finished-dose generics, competing directly with the companies they also supply. At the other end of the value chain, the customers purchasing generics are not individual patients but institutional buyers wielding enormous leverage. In the UK, the National Health Service is effectively a monopsony buyer; France’s Assurance Maladie, Germany’s Krankenkassen, and the Netherlands’ Zorgverzekeraars all negotiate from positions of concentrated power. Large pharmacy chains like Walgreens Boots Alliance (operating Boots in the UK) and Celesio (McKesson’s European arm) consolidate purchasing further. Some of these institutional buyers have gone so far as to establish in-house manufacturing — the NHS has explored captive generic production, and several large hospital groups in Scandinavia operate their own compounding pharmacies.`,
+  answers: {
+    mktStructure: "Perfect competition",
+    priceFactors: ['A','C','D','E','G','I'],
+    npc: ['Low','Low','Low'],
+    overallRivalry: 'High',
+    entry: ['No','Partial','No','No','No','No','Partial'],
+    overallEntry: 'High',
+    overallSubs: 'Low',
+    overallComps: 'Neutral',
+    sup: {1:'Higher',3:'Medium',5:'Medium'},
+    overallSupplier: 'Medium',
+    buy: {1:'Higher',5:'Medium'},
+    overallBuyer: 'High',
+    sub: ['Low', 'Higher', 'Similar'],
+    comp: ['Medium', 'Stable', 'Medium'],
+    overallProfitability: 'Very Low',
+  },
+  feedback: {
+    mktStructure: "200+ companies, H below 0.10, perfectly homogeneous by regulation.",
+    pf: {
+      A:"200+ manufacturers competing in sealed-bid tenders.",
+      B:"Generic market growing as patents expire — not stagnant.",
+      C:"Indian/Chinese producers 30–50% cheaper than European ones.",
+      D:"60–70% utilisation = substantial excess capacity.",
+      E:"Bioequivalent by regulation; pharmacists substitute on price alone.",
+      F:"Tenders are transparent sealed bids — prices are observable.",
+      G:"No price leader; each tender is an independent auction.",
+      H:"Plants can be repurposed — exit barriers are moderate, not strong.",
+      I:"Tenders award entire contracts based on price — very elastic demand.",
+    },
+    npc: ["Brand irrelevant for regulated generics.","No R&D beyond bioequivalence testing.","Quality standardised by regulation."],
+    rivalry: "6 hot factors. Sealed-bid tenders drive extreme price competition.",
+    entry: ["€1–5M per molecule is relatively modest.","Regulatory approval needed but straightforward.","Brand is irrelevant.","API available from multiple global suppliers.","No meaningful experience-curve advantage.","No network effects.","Incumbents bid aggressively but cannot block entry."],
+    overallEntry: "Low barriers for standard molecules — entry threat is high.",
+    overallSubs: "Branded drugs are far more expensive; patients need the medication.",
+    overallComps: "Healthcare infrastructure supports generics but doesn’t especially boost demand.",
+    sup: {1:"60% of API from India/China; some niche molecules have 2–3 producers.",3:"Multiple API suppliers for common molecules, fewer for niche.",5:"Some API manufacturers have entered finished-dose markets."},
+    overallSupplier: "Concentrated API supply with some forward-integration threat.",
+    buy: {1:"National health systems are often single buyers.",5:"Some health systems have captive manufacturing."},
+    overallBuyer: "Highly concentrated public buyers who run sealed-bid tenders.",
+    sub: [
+      "Branded drugs are the same molecule at higher price — not a real substitute for buyers.",
+      "Branded equivalents cost many times more than generics.",
+      "Same therapeutic effect — branded and generic are bioequivalent by regulation."
+    ],
+    comp: [
+      "Healthcare infrastructure varies across European countries.",
+      "Healthcare system spending is relatively stable.",
+      "Pharmacies and healthcare systems facilitate generic use but don't especially boost demand."
+    ],
+    profitability: "High rivalry, high entry threat, high buyer power, and medium supplier power create a hostile environment. Low substitutes and neutral complements offer little relief. Very low profitability — most producers earn razor-thin margins.",
+  }
+},
+{
+  title: "US Craft Beer Industry",
+  productMarket: "Craft beer (independent brewery production)",
+  geoMarket: "United States",
+  description: `In Portland, Oregon, you can walk down a single city block and pass four independent breweries, each with a chalkboard listing a dozen beers on tap. This density is not unusual: the United States is home to over 9,500 craft breweries — more than at any point in the nation’s history, including the pre-Prohibition era. The roster spans everything from Boston Beer Company (maker of Samuel Adams, the largest craft brewer, with less than 5% of the segment) and Sierra Nevada, to regional favourites like Dogfish Head, Bell’s, New Belgium, and Tree House, down to thousands of neighbourhood “nanobreweries” producing just a few hundred barrels a year. The top 50 craft producers together account for less than 40% of total craft segment revenue; the rest is scattered across thousands of small operators whose individual market shares round to zero.<br><br>Every craft brewer tells a story about what makes its beer unique. Tree House’s Julius is a hazy, juicy IPA with a cult following in New England; Monkish in Los Angeles experiments with mixed-fermentation wild ales that sell out in minutes online; Great Notion in Portland puts cheesecake-inspired flavours in its stouts. The marketing emphasises local provenance (“brewed with water from the Cascade Range”), quirky label art, and the founder’s personal journey from home-brewer to professional. Limited releases and seasonal brews create a sense of scarcity and novelty. Yet for all the narrative distinctiveness, a blind tasting tells a different story: within the dominant style categories — IPA, pale ale, amber, stout — a trained palate can distinguish individual breweries, but the average consumer at a bottle shop faces an overwhelming wall of similar-looking cans at similar prices. A six-pack of craft IPA costs $12–15 regardless of whether it comes from a brewery in Vermont or Virginia, and the consumer’s decision is often driven by the most eye-catching label or the freshest date code. Choosing a different brand next week requires no effort, no cancellation, no migration of data — just picking up a different can.<br><br>The craft segment’s explosive growth phase has ended. Between 2010 and 2019, craft beer volume in the US more than doubled; since 2020, it has been essentially flat, with the Brewers Association reporting that volume growth has stalled and the number of annual brewery closures has been climbing steadily. Many small breweries expanded during the boom years, investing in larger fermentation tanks, canning lines, and taproom buildouts in anticipation of continued growth. That capacity now exceeds what their local markets can absorb. Pricing across craft beer is visible and straightforward: retail prices are on shelf tags, and no single brewer commands enough market power to set a reference price that others follow. The price elasticity of demand for craft beer specifically is moderated by the fact that it competes for the broader “premium drink occasion”: a consumer might choose a craft IPA on Tuesday, a natural wine on Thursday, and a margarita on Saturday. Brewing equipment — stainless steel fermentation tanks, canning machines, glycol chillers — has an active secondhand market, and a brewery that closes can typically sell its equipment to another brewer or a cidery for reasonable salvage value. Taproom leases are usually the most painful obligation to unwind.<br><br>Opening a craft brewery is, relative to most manufacturing businesses, cheap and quick. Basic equipment and a small taproom space can be set up for $500,000 to $2 million. Federal TTB (Alcohol and Tobacco Tax and Trade Bureau) and state licensing take three to twelve months and involve paperwork rather than prohibitive fees. No proprietary technology or patent protects any existing brewer’s recipes — an IPA is an IPA, and ingredient suppliers will sell to anyone. What is harder to crack is distribution. The US operates under a three-tier system (brewer → distributor → retailer) mandated by state law, and the largest distribution networks — many of them historically affiliated with Anheuser-Busch InBev or Molson Coors — prioritise the macro brands that generate their highest volumes. Securing shelf space at a major grocery chain or a tap handle at a popular bar means competing for attention with thousands of established brands. But none of this represents an insurmountable barrier: the 9,500 existing breweries are living proof that entry is achievable.<br><br>The competitive set extends well beyond other craft breweries. Macro beer (Bud Light, Coors Light, Miller Lite) competes on price for the casual beer drinker; hard seltzers (White Claw, Truly) and ready-to-drink cocktails (High Noon, Cutwater) have exploded in popularity among younger consumers; premium wine and spirits (craft gin, small-batch bourbon) appeal to the same quality-conscious demographic that craft beer targets. At the same time, the culture around craft beer generates its own demand: brewery taprooms are social destinations; beer festivals from the Great American Beer Festival to local weekend “brew crawls” attract enthusiasts; food-pairing dinners and brewery tours have become a tourist activity in cities like San Diego, Portland, and Asheville.<br><br>On the supply side, brewing requires malted barley, hops, yeast, and water. Barley malt is a global commodity with multiple maltsters competing for business — no supply constraints there. Hops are a different matter: the most sought-after aroma varieties — Citra, Mosaic, Simcoe, Galaxy — are proprietary cultivars controlled by a handful of hop farms and breeding programmes (Yakima Chief, John I. Haas), with multi-year forward contracts that favour large established brewers. During years of tight supply, small breweries have been shut out entirely. Aluminium cans — now the dominant packaging format for craft beer — are produced by a concentrated oligopoly: Ball Corporation, Crown Holdings, and Ardagh Group dominate the North American market. During the can shortage of 2020–21, small breweries waited months for deliveries while large brands received priority allocation. None of these input suppliers — maltsters, hop growers, or can manufacturers — has any interest in entering the brewing business. Buyers of craft beer include large retail chains (Kroger, Total Wine & More, Trader Joe’s), on-premise accounts (bars and restaurants), and direct-to-consumer taproom visitors. Large retailers negotiate volume discounts and charge slotting fees, but the majority of small craft breweries sell primarily through their own taprooms and a handful of local accounts. The end consumer is an individual beer drinker making a discretionary $5–15 purchase, and no individual or institution buying craft beer has the resources or incentive to set up a commercial brewery.`,
+  answers: {
+    mktStructure: "Monopolistic competition",
+    priceFactors: ['A','B','D','E','G'],
+    npc: ['Low','Medium','High'],
+    overallRivalry: 'High',
+    entry: ['No','Partial','No','Partial','No','No','No'],
+    overallEntry: 'High',
+    overallSubs: 'High',
+    overallComps: 'Positive',
+    sup: {1:'Higher',3:'Low',5:'Low'},
+    overallSupplier: 'Medium',
+    buy: {1:'Lower',5:'Low'},
+    overallBuyer: 'Low',
+    sub: ['High', 'Similar', 'Similar'],
+    comp: ['Medium', 'Stable', 'High'],
+    overallProfitability: 'Low',
+  },
+  feedback: {
+    mktStructure: "9,500+ breweries with some recipe/brand differentiation. H below 0.05.",
+    pf: {
+      A:"9,500+ breweries, none with >5% share — clearly many sellers.",
+      B:"Stagnant since 2020, volume flat, closures rising.",
+      C:"Most small breweries have similar cost structures.",
+      D:"Expanded capacity during the boom now exceeds demand.",
+      E:"Within styles, products are similar; switching costs are zero.",
+      F:"Retail pricing is transparent.",
+      G:"No brewer sets prices others follow.",
+      H:"Equipment has resale value — exit barriers are moderate, not strong.",
+      I:"Moderate — craft competes for the premium-drink occasion but isn’t purely price-driven.",
+    },
+    npc: ["Most craft breweries have minimal advertising budgets.","Moderate recipe innovation and experimentation.","Distinctive flavours and taproom experiences are key differentiators."],
+    rivalry: "5 hot factors = Hot. Stagnant market with many commodity-like players.",
+    entry: ["$500K–2M is low relative to most industries.","Licensing straightforward but distribution controlled by macro brewers.","Consumers seek novelty, not brand loyalty.","Three-tier distribution system favours established brands.","No meaningful experience advantages.","No network effects.","No aggressive competitive response to new small breweries."],
+    overallEntry: "Low barriers overall — 9,500+ breweries proves entry is easy.",
+    overallSubs: "Wine, spirits, hard seltzer, and RTD cocktails all compete for the drink occasion.",
+    overallComps: "Brewery tourism and food pairing culture boost craft beer demand.",
+    sup: {1:"Specialty hop farms and aluminium can oligopoly vs. 9,500 breweries.",3:"Specialty hops have limited alternative sources.",5:"Hop farms and can makers don’t brew beer."},
+    overallSupplier: "Concentrated for some key inputs but no forward-integration threat.",
+    buy: {1:"Mostly fragmented consumers and small local retailers.",5:"Consumers and retailers don’t brew beer."},
+    overallBuyer: "Fragmented buyers purchasing through taprooms and local shops.",
+    sub: [
+      "Wine, spirits, hard seltzer, RTD cocktails — many alternatives for the drink occasion.",
+      "Competing alcoholic beverages are priced in a similar range.",
+      "Substitutes compete effectively for the same social drinking occasion."
+    ],
+    comp: [
+      "Brewery tourism and food pairing culture exist but are not universal.",
+      "Food and tourism pricing is relatively stable.",
+      "Taproom culture and food pairing strongly enhance the craft beer experience and demand."
+    ],
+    profitability: "High rivalry, high entry threat, and high substitutes are three major negatives. Positive complements and low buyer power help, but medium supplier power is neutral. Low profitability — many breweries struggle to survive.",
+  }
+},
+{
+  title: "Cloud Infrastructure (IaaS)",
+  productMarket: "Infrastructure-as-a-Service (virtual servers, storage, networking)",
+  geoMarket: "Global",
+  description: `When Snapchat signed a five-year, $2 billion contract with Google Cloud in 2022, it was not just buying server capacity — it was betting its entire technical architecture on a single provider’s ecosystem. Snap’s engineers had built years of custom integrations with Google BigQuery, Google Kubernetes Engine, and Vertex AI; migrating to another cloud would require rewriting hundreds of microservices, a project estimated internally at 18 months and $200+ million. This kind of lock-in is the defining feature of the Infrastructure-as-a-Service market, where three hyperscale providers dominate. Amazon Web Services, the pioneer, commands approximately 31% of global IaaS revenue; Microsoft Azure, buoyed by deep integration with the Office 365 and Windows ecosystem that every enterprise already uses, holds about 25%; and Google Cloud Platform, leveraging its AI and machine learning prowess, accounts for roughly 11%. Together, the top three capture about two-thirds of a market that exceeded $150 billion in 2024. Behind them, Alibaba Cloud leads in China but has negligible presence in the West; Oracle Cloud and IBM trail with single-digit shares.<br><br>Industry growth remains torrid at 20–25% annually, driven by enterprises migrating legacy IT infrastructure, the explosion of AI/ML training workloads (which require vast compute resources), and digital transformation in emerging markets. All three leaders invest staggeringly in infrastructure: each spends over $50 billion per year on data centre construction, custom server hardware, undersea fibre cables, and renewable energy procurement. AWS has designed its own Graviton processors; Google has developed Tensor Processing Units (TPUs) for AI workloads; Microsoft is building custom chips codenamed Maia and Cobalt. These proprietary hardware investments create differentiated offerings that competitors cannot easily replicate. There is essentially no idle capacity — newly opened hyperscale data centres reach high utilisation within months as enterprises queue up for provisioning. Cost structures across the top three are broadly similar: each benefits from massive economies of scale, and the per-unit cost of compute and storage declines predictably with volume. AWS has historically been the first to announce price reductions, often timed to its re:Invent conference, and Azure and Google Cloud tend to match within weeks — a cadence the industry has followed since 2014. Headline prices for standard virtual machines and object storage are listed publicly on each provider’s website and can be compared through third-party calculators. But these list prices are misleading: the actual cost a customer pays depends on a labyrinthine structure of reserved-instance discounts (commit for one or three years at 30–60% off), savings plans, spot-instance auctions, private pricing agreements for large enterprises, and free-tier credits for startups. Two companies running the same workload on the same cloud can pay vastly different amounts, and deciphering a competitor’s true cloud spend is nearly impossible. Brand marketing at this level resembles an arms race: AWS sponsors Formula 1, Azure plasters its logo at enterprise conferences, and Google Cloud partners with major sports leagues, all competing for CTO mind-share.<br><br>The barriers facing a new entrant are breathtaking. Building a global network of hyperscale data centres — each consuming as much electricity as a small city and requiring proximity to fibre-optic backbone interconnections — demands cumulative capital expenditure of $30–50 billion. Data sovereignty regulations in the European Union (GDPR), China, India, and Brazil require local data residency, meaning a provider must build facilities in dozens of jurisdictions. The brands of AWS, Azure, and GCP carry weight with enterprise procurement teams: a CTO staking her company’s infrastructure on an unproven cloud provider faces career risk if things go wrong. Each provider’s catalogue of proprietary services — hundreds of offerings from serverless computing to managed databases to AI APIs — creates deep integration that a newcomer cannot replicate. The more services a customer uses, the costlier and more complex migration becomes, creating a flywheel of retention. Developer communities, third-party tooling (Terraform, Datadog, Snowflake integrations), and training certifications (AWS Certified Solutions Architect, Azure Administrator) all orbit the incumbents. When Alibaba, backed by one of China’s largest conglomerates, attempted to break into the Western IaaS market, it struggled to gain meaningful share despite years of investment — suggesting that capital alone is insufficient.<br><br>The one alternative to public cloud is running your own data centres — the “on-premise” model that dominated corporate IT for decades. But on-premise infrastructure is in structural decline: enterprises are moving workloads to the cloud at an accelerating pace, attracted by the flexibility to scale up or down without owning hardware. The few companies building private clouds (large banks, intelligence agencies) do so for regulatory or security reasons, not because it is economically competitive. Conversely, the explosion of SaaS applications (Salesforce, Workday, ServiceNow) and AI/ML model training (which requires access to hundreds or thousands of GPUs for weeks at a time) generates insatiable demand for cloud infrastructure — these are powerful complements that fuel growth.<br><br>The semiconductor suppliers feeding the cloud hyperscalers have become the industry’s most powerful upstream players. Nvidia holds over 80% of the data centre GPU market, and its H100 and successor B200 chips have become the essential hardware for AI training. During the 2023–24 AI boom, GPU prices rose 200–300% and allocation was rationed; even AWS and Microsoft faced waiting lists. Intel and AMD supply CPUs but face increasing competition from the hyperscalers’ own custom chip designs, which reduce but do not eliminate dependence on external suppliers. Power utilities are becoming critically important as data centres strain regional electrical grids; in Virginia’s “Data Centre Alley,” Dominion Energy has had to build new substations to keep up with demand. Despite this concentration of power in the supply chain, none of these suppliers has shown any inclination to compete with their customers by launching their own cloud services — Nvidia’s CEO Jensen Huang has explicitly stated that the company views hyperscalers as partners, not targets. The buyer base for cloud services spans the entire economy: from a two-person startup spending $500/month on AWS to a Fortune 50 enterprise with a $100 million annual Azure commitment. Even the largest enterprise customers represent a tiny fraction of the $150B+ market, and switching providers is so costly that most accept annual price negotiations without the realistic option of walking away. The idea of an enterprise “backward integrating” — building its own hyperscale cloud to avoid paying AWS — is theoretically possible but practically absurd: the capital requirements, talent pool, and operational complexity put it out of reach for all but the very largest technology companies, who are already the incumbents.`,
+  answers: {
+    mktStructure: "Oligopoly",
+    priceFactors: ['F','H'],
+    npc: ['Medium','High','High'],
+    overallRivalry: 'Low',
+    entry: ['Yes','Partial','Yes','Yes','Yes','Partial','Yes'],
+    overallEntry: 'Low',
+    overallSubs: 'Low',
+    overallComps: 'Positive',
+    sup: {1:'Higher',3:'Medium',5:'Low'},
+    overallSupplier: 'Medium',
+    buy: {1:'Lower',5:'Low'},
+    overallBuyer: 'Low',
+    sub: ['Low', 'Higher', 'Lower'],
+    comp: ['High', 'Falling', 'High'],
+    overallProfitability: 'Very High',
+  },
+  feedback: {
+    mktStructure: "Top 3 control 67%. H exceeds 0.20.",
+    pf: {
+      A:"Three dominant players — NOT many sellers.",
+      B:"Growing 20–25% — far from stagnant.",
+      C:"Broadly similar cost structures at scale.",
+      D:"No excess capacity — data centres fill within months.",
+      E:"High switching costs due to proprietary services.",
+      F:"Headline prices published, but discount structures make true prices hard to compare.",
+      G:"AWS sets prices first, others follow — implicit price leadership EXISTS. Factor asks about ABSENCE.",
+      H:"$30–50B in cumulative infrastructure with no alternative use — strong exit barriers.",
+      I:"Enterprises need cloud; demand is relatively inelastic.",
+    },
+    npc: ["Significant brand and partnership marketing.","$50B+/year each in custom chips, platform R&D.","Differentiated through proprietary services and ecosystems."],
+    rivalry: "Only 2 hot factors = Cool. Stable oligopoly with implicit coordination.",
+    entry: ["$30–50B cumulative capex.","Data sovereignty regulations add complexity.","AWS, Azure, GCP are trusted brands.","Custom chips, vast service catalogues, fibre networks.","Years of platform iteration.","More users attract more third-party tools.","Top 3 respond aggressively to threats."],
+    overallEntry: "Extraordinarily high barriers — entry threat is very low.",
+    overallSubs: "On-premise infrastructure is declining, not a growing substitute.",
+    overallComps: "SaaS and AI workloads are driving explosive cloud adoption.",
+    sup: {1:"Nvidia >80% of AI GPUs vs. 3 cloud providers.",3:"Custom chips partially reduce Nvidia dependence.",5:"Nvidia and Intel do not offer cloud services."},
+    overallSupplier: "Nvidia has pricing power but no integration threat; custom chips reduce dependence.",
+    buy: {1:"Millions of companies, even the largest are a tiny market share.",5:"Building hyperscale cloud is prohibitively expensive."},
+    overallBuyer: "Fragmented and locked-in buyers with no realistic alternative.",
+    sub: [
+      "On-premise infrastructure is declining, not growing — limited and shrinking availability.",
+      "On-premise requires large upfront capital investment — effectively more expensive.",
+      "On-premise cannot match cloud's scalability, flexibility, and global reach."
+    ],
+    comp: [
+      "SaaS applications, AI/ML workloads, and developer tools are ubiquitous.",
+      "SaaS and AI tool prices are falling as the ecosystem matures.",
+      "Every new SaaS app and AI workload directly drives demand for cloud infrastructure."
+    ],
+    profitability: "Low rivalry in a stable oligopoly, very low entry threat, negligible substitutes, booming complements, and low buyer power. Only medium supplier power (Nvidia) is a concern. Very high profitability — AWS alone generates $26B+ annual operating income.",
+  }
+},
+{
+  title: "European Fast Fashion Retail",
+  productMarket: "Trendy affordable clothing with rapid style turnover",
+  geoMarket: "Europe",
+  description: `At Inditex’s headquarters in Arteixo, a small town in the northwest corner of Spain, designers analyse real-time sales data from Zara’s 1,800 European stores, spot a trending silhouette on Instagram, and have a new garment in production within two weeks. Across the North Sea in Stockholm, H&M’s product teams do much the same, albeit with longer lead times. In Guangzhou, Shein’s algorithm-driven design engine generates up to 10,000 new styles per day, tests them with small batches, and scales winners within 72 hours — an approach that has upended the industry’s economics. The European fast fashion market — broadly defined as trendy, affordable clothing with frequent style turnover — generates over €80 billion annually and is served by an extraordinary number of competitors. Inditex (operating Zara, Massimo Dutti, Pull&Bear, Bershka, and Stradivarius), H&M Group (H&M, COS, & Other Stories, Arket, Weekday), Primark (owned by Associated British Foods), Mango, ASOS, Boohoo, PrettyLittleThing, and Shein are the most visible names, but hundreds of smaller European brands, marketplace sellers, and direct-to-consumer labels also compete. The top five groups account for roughly 45% of market revenue; the rest is atomised.<br><br>Consumer research consistently finds that shoppers in the fast fashion segment are motivated primarily by two things: price and visual appeal. A €30 dress from Zara, H&M, or Mango serves an identical purpose in a consumer’s wardrobe, and “dupe culture” — the social media phenomenon of finding cheaper alternatives to trending items — has made cross-brand substitution a sport. TikTok and Instagram influencers post side-by-side comparisons of a €90 Zara blazer and a €25 Shein lookalike, driving millions of viewers to the cheaper option. Walking from one fast fashion store to another in any European shopping street, or clicking between websites, costs the consumer nothing. Research by McKinsey found that only 12% of European fast fashion shoppers would call themselves “loyal” to a single brand.<br><br>The European apparel market overall has been stagnant in volume terms for several years. Consumers, especially younger demographics, are redirecting discretionary spending toward travel, electronics, wellness, and dining out. Meanwhile, the rise of second-hand platforms has created a parallel market that erodes new-clothing demand. Within this static market, the competitive intensity is fierce. Every season ends with mountains of unsold inventory that must be cleared through end-of-season sales and flash promotions: industry sources estimate that 15–25% of fast fashion production is eventually sold at markdown, destroying margin. The cost structures across the industry could hardly be more divergent. Shein’s model — no physical stores, ultra-short production runs sourced directly from small Chinese factories, and logistics optimised for individual parcel shipments — achieves production costs estimated at 50–70% below traditional retailers who maintain extensive European store networks, regional distribution centres, and significantly higher labour costs. Primark, which operates warehouse-scale stores (many exceeding 5,000 square metres) and deliberately avoids e-commerce, achieves unit-cost efficiencies through extreme volume that no boutique can match. Online fast fashion prices are compared instantly across websites, and social media ensures that any pricing discrepancy is broadcast within hours. Zara maintains a modest pricing premium based on perceived design quality but has never attempted to set prices that the rest of the industry follows; instead, every retailer adjusts prices dynamically based on sell-through data and competitor monitoring tools like Edited and Trendalytics. For retailers with large physical store networks, the lease obligations represent a significant commitment: H&M operates over 3,000 stores across Europe, many on ten-year leases with break clauses that are expensive to trigger. Closing a store means absorbing remaining lease payments, staff redundancy costs, and inventory write-downs. A garment is also a fundamentally discretionary purchase — nobody needs a new dress the way they need food or medicine — and when consumers cut back on spending, clothing is among the first categories to suffer.<br><br>Launching a fast fashion brand has never been easier. Shein reportedly started with less than $10 million in initial capital, and numerous micro-brands launch daily on Instagram and TikTok with little more than a social media account and a relationship with an Alibaba-sourced factory. There are no patents protecting clothing designs (copyright law in the EU provides limited protection for fashion), no government licensing requirements beyond standard business registration, and no proprietary technology that incumbents control. The global garment supply chain is open to anyone willing to place a minimum order. The competitive challenge is not access to manufacturing but the ability to generate enough social media visibility and trend-responsiveness to stand out in an ocean of options. When new brands do gain traction, incumbents adapt their own offerings (Zara famously copies runway trends within weeks) but do not have the ability to block new entrants.<br><br>A growing array of alternatives competes for the fashion-conscious European consumer’s wallet. Vinted, the Lithuanian second-hand marketplace, surpassed 80 million users in Europe in 2024, offering branded used clothing at a fraction of original prices. Depop and Vestiaire Collective serve similar markets at different price tiers. Clothing rental services (Hurr in the UK, Mudjeans in the Netherlands) target consumers who want variety without ownership. At the other end of the spectrum, some consumers are “trading up” to higher-quality, longer-lasting garments from brands like Cos, Arket, or Uniqlo — the “slow fashion” movement. All of these trends eat into new fast fashion sales. On the complementary side, social media platforms — Instagram, TikTok, Pinterest — are paradoxically the fast fashion industry’s greatest marketing engine: viral fashion content generates demand that drives millions of purchases.<br><br>The upstream supply chain for fast fashion is extraordinarily fragmented. Garments are manufactured in thousands of factories across Bangladesh (centred around Dhaka’s Gazipur district), Vietnam, Turkey, and China. Individual factories employ 200–2,000 workers and compete intensely for orders from the global brands. A factory in Dhaka that falls out of favour with H&M can be replaced by one in Ho Chi Minh City within a single production cycle. The brands routinely audit, benchmark, and rotate their supplier base, and no single factory has meaningful negotiating leverage. Raw materials — cotton, polyester, viscose, dyes — are global commodities with multiple competing sources. No garment manufacturer has ever successfully launched its own consumer fashion brand of significance. At the retail end of the chain, the customer is an individual consumer — a university student in Milan buying a €15 top, a young professional in London refreshing her work wardrobe, a teenager in Berlin following a TikTok trend. These millions of individual purchases, none of which represents even a rounding error in any retailer’s revenue, give the buyer no negotiating power whatsoever. Multi-brand online platforms like Zalando and ASOS Marketplace serve as distribution channels with some negotiating leverage over smaller brands, but the largest fast fashion companies sell primarily through their own stores and websites.`,
+  answers: {
+    mktStructure: "Monopolistic competition",
+    priceFactors: ['A','B','C','D','E','G','H','I'],
+    npc: ['High','Low','Low'],
+    overallRivalry: 'High',
+    entry: ['No','No','No','No','No','No','Partial'],
+    overallEntry: 'High',
+    overallSubs: 'High',
+    overallComps: 'Positive',
+    sup: {1:'Lower',3:'High',5:'Low'},
+    overallSupplier: 'Low',
+    buy: {1:'Lower',5:'Low'},
+    overallBuyer: 'Low',
+    sub: ['High', 'Lower', 'Similar'],
+    comp: ['High', 'Falling', 'High'],
+    overallProfitability: 'Low',
+  },
+  feedback: {
+    mktStructure: "Many brands, H around 0.10, some style/brand differentiation.",
+    pf: {
+      A:"Hundreds of brands competing for the same consumers.",
+      B:"European apparel market stagnant; spending shifting elsewhere.",
+      C:"Shein 50–70% below traditional retailers; Primark has warehouse advantages.",
+      D:"15–25% unsold inventory marked down — production exceeds full-price demand.",
+      E:"Interchangeable within price tiers; zero switching costs.",
+      F:"Instant online price comparison — prices are highly observable.",
+      G:"No price leader; dynamic pricing based on sell-through.",
+      H:"3,000+ stores on long-term leases — significant exit barriers.",
+      I:"Fashion is discretionary; consumers easily reduce purchases.",
+    },
+    npc: ["Heavy social media and influencer marketing.","Minimal R&D in fast fashion.","Quality differentiation is minimal."],
+    rivalry: "8 hot factors = Red Hot. Near-maximum price competition intensity.",
+    entry: ["Shein launched with under $10M — very low capital needed.","No government barriers.","Weak brand loyalty — consumers seek novelty.","Supply chains are accessible to anyone.","No experience-curve advantages.","No network effects.","Incumbents adapt but don’t block entry."],
+    overallEntry: "Very low barriers — hundreds of new brands enter regularly.",
+    overallSubs: "Second-hand (Vinted), rental, slow fashion, and luxury trade-up are growing.",
+    overallComps: "Social media and influencers actively drive fast fashion demand.",
+    sup: {1:"Thousands of garment factories vs. many fashion retailers.",3:"Many alternative factories across multiple countries.",5:"Garment factories don’t become fashion retailers."},
+    overallSupplier: "Extremely fragmented suppliers with zero leverage.",
+    buy: {1:"Millions of individual consumers.",5:"Consumers don’t manufacture clothing."},
+    overallBuyer: "Fragmented individual consumers — power is zero.",
+    sub: [
+      "Second-hand (Vinted), rental, slow fashion, luxury trade-up — many growing alternatives.",
+      "Second-hand clothing is significantly cheaper; rental can also be cheaper per-wear.",
+      "Growing appeal of sustainable fashion makes substitutes increasingly competitive."
+    ],
+    comp: [
+      "Social media platforms and influencer networks are highly accessible.",
+      "Social media is free; influencer marketing costs have been falling per impression.",
+      "Instagram, TikTok, and influencers are powerful demand drivers for fast fashion."
+    ],
+    profitability: "Red-hot rivalry (8/9 factors), high entry threat, and high substitutes are devastating. Low supplier and buyer power help, and complements (social media) boost demand, but cannot overcome three powerful negative forces. Low profitability.",
+  }
+}
+];
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════════════════ */
+let currentSection = 0;
+let selectedIndustry = null;
+let factorStates = {};
+PF.forEach(f => factorStates[f.id] = false);
+
+const sectionNames = ['Industry','1. Rivalry','2. Entry','3. Subs/Comps','4. Suppliers','5. Buyers','Summary'];
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════════════════ */
+function init() {
+  // Populate industry selector
+  const sel = document.getElementById('industrySelect');
+  industries.forEach((ind, i) => {
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = ind.title;
+    sel.appendChild(opt);
+  });
+  buildNav();
+  buildPriceFactors();
+  buildEntryTable();
+  buildTable('subsTable', SubF);
+  buildTable('compsTable', CompF);
+  buildTable('supplierTable', SF);
+  buildTable('buyerTable', BF);
+}
+
+function buildNav() {
+  document.getElementById('nav').innerHTML = sectionNames.map((n, i) =>
+    `<button class="nav-btn${i===0?' active':''}" onclick="goSection(${i})">${n}</button>`
+  ).join('');
+}
+
+function goSection(idx) {
+  if (idx > 0 && !selectedIndustry && selectedIndustry !== 0) {
+    alert('Please select an industry first.'); return;
+  }
+  currentSection = idx;
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+  document.querySelector(`.card[data-section="${idx}"]`).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+  if (idx === 6) populateSummary();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function populateSummary() {
+  const pairs = [
+    ['overallRivalry','sumRivalry'],['overallEntry','sumEntry'],
+    ['overallSubs','sumSubs'],['overallComps','sumComps'],
+    ['overallSupplier','sumSupplier'],['overallBuyer','sumBuyer']
+  ];
+  const badgeColors = {'Low':'#337A33','Medium':'#FFA240','High':'#CC3333','Negative':'#CC3333','Neutral':'#999','Positive':'#337A33'};
+  pairs.forEach(([src,dst])=>{
+    const v = document.getElementById(src).value;
+    const cell = document.getElementById(dst);
+    if(v){ cell.innerHTML=`<span style="display:inline-block;padding:3px 10px;border-radius:6px;font-size:0.82rem;font-weight:600;color:#fff;background:${badgeColors[v]||'#666'}">${v}</span>`; }
+    else { cell.innerHTML='<span style="color:#999">—</span>'; }
+  });
+}
+
+function selectIndustry() {
+  const val = document.getElementById('industrySelect').value;
+  if (val === '') { selectedIndustry = null; return; }
+  selectedIndustry = parseInt(val);
+  const ind = industries[selectedIndustry];
+  document.getElementById('productMarket').value = ind.productMarket;
+  document.getElementById('geoMarket').value = ind.geoMarket;
+  document.getElementById('autoFields').style.display = 'block';
+  document.getElementById('descriptionArea').innerHTML =
+    `<div class="desc-box">${ind.description}</div>`;
+  // Add description toggles to other sections
+  for (let i = 1; i <= 6; i++) {
+    const el = document.getElementById(`descToggle${i}`);
+    if (el) el.innerHTML = `<button class="desc-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">&#128196; Show/hide industry description</button><div class="desc-box" style="display:none">${ind.description}</div>`;
+  }
+}
+
+function buildPriceFactors() {
+  document.getElementById('priceFactors').innerHTML = PF.map(f =>
+    `<div class="factor-row" onclick="togglePF('${f.id}')"><button class="factor-toggle" id="tog_${f.id}"></button><span class="factor-name">${f.label}</span></div>`
+  ).join('');
+}
+
+function togglePF(id) {
+  factorStates[id] = !factorStates[id];
+  document.getElementById(`tog_${id}`).classList.toggle('on', factorStates[id]);
+  const count = Object.values(factorStates).filter(Boolean).length;
+  const pct = (count/9)*100;
+  document.getElementById('thermoNeedle').style.left = pct+'%';
+  let label, color;
+  if (count<=2){label=`Cool (${count}/9)`;color='#337A33';}
+  else if(count<=4){label=`Warm (${count}/9)`;color='#FFA240';}
+  else if(count<=6){label=`Hot (${count}/9)`;color='#e85d26';}
+  else{label=`Red Hot (${count}/9)`;color='#CC3333';}
+  const v=document.getElementById('thermoVerdict');v.textContent=label;v.style.color=color;
+}
+
+function buildEntryTable() {
+  document.querySelector('#entryTable tbody').innerHTML = EB.map((b,i) =>
+    `<tr><td>${b}</td><td><select id="eb_${i}"><option value="">--</option><option>Yes</option><option>No</option><option>Partial</option></select></td></tr>`
+  ).join('');
+}
+
+function buildTable(tableId, factors) {
+  document.querySelector(`#${tableId} tbody`).innerHTML = factors.map((f,i) => {
+    const opts = f.opts.map(o=>`<option>${o}</option>`).join('');
+    return `<tr><td>${f.label}</td><td><select id="${tableId}_${i}"><option value="">--</option>${opts}</select></td></tr>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VALIDATION
+   ═══════════════════════════════════════════════════════════════════════════ */
+function validate() {
+  const missing = [];
+  const check = (id, label) => { if (!document.getElementById(id).value) missing.push(label); };
+  if (selectedIndustry === null) missing.push('Industry selection');
+  check('mktStructure', 'Market structure');
+  for (let i=0;i<3;i++) check(`npc_${i}`, `Non-price competition #${i+1}`);
+  check('overallRivalry', 'Overall internal rivalry');
+  for (let i=0;i<7;i++) check(`eb_${i}`, `Entry barrier #${i+1}`);
+  check('overallEntry', 'Overall entry threat');
+  for (let i=0;i<3;i++) check(`subsTable_${i}`, `Substitutes factor #${i+1}`);
+  check('overallSubs', 'Substitutes assessment');
+  for (let i=0;i<3;i++) check(`compsTable_${i}`, `Complements factor #${i+1}`);
+  check('overallComps', 'Complements assessment');
+  for (let i=0;i<7;i++) check(`supplierTable_${i}`, `Supplier factor #${i+1}`);
+  check('overallSupplier', 'Overall supplier power');
+  for (let i=0;i<7;i++) check(`buyerTable_${i}`, `Buyer factor #${i+1}`);
+  check('overallBuyer', 'Overall buyer power');
+  // Check profitability radio
+  const profVal = document.querySelector('input[name="profitability"]:checked');
+  if (!profVal) missing.push('Overall industry profitability');
+  // Mark invalid selects
+  document.querySelectorAll('select').forEach(s => s.classList.remove('invalid'));
+  document.querySelectorAll('.likert-option').forEach(l => l.classList.remove('invalid-likert'));
+  if (missing.length > 0) {
+    document.querySelectorAll('select').forEach(s => {
+      if (!s.value) s.classList.add('invalid');
+    });
+    if (!profVal) document.querySelectorAll('.likert-option').forEach(l => l.classList.add('invalid-likert'));
+  }
+  return missing;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GRADING (38 points)
+   ═══════════════════════════════════════════════════════════════════════════ */
+function grade() {
+  const ans = industries[selectedIndustry].answers;
+  const fb = industries[selectedIndustry].feedback;
+  const items = []; // {label, studentAns, correctAns, correct:bool, expl, section}
+  let total = 0;
+
+  // 1. Market structure (1pt)
+  const ms = document.getElementById('mktStructure').value;
+  const msOk = ms === ans.mktStructure;
+  if (msOk) total++;
+  items.push({section:'rivalry', label:'Market structure', student:ms, correct:ans.mktStructure, ok:msOk, expl:fb.mktStructure});
+
+  // 2-10. Price factors (9pts)
+  const correctPF = new Set(ans.priceFactors);
+  PF.forEach(f => {
+    const on = factorStates[f.id];
+    const shouldBeOn = correctPF.has(f.id);
+    const ok = on === shouldBeOn;
+    if (ok) total++;
+    items.push({section:'rivalry', label:f.label, student:on?'ON (Hot)':'OFF (Cool)', correct:shouldBeOn?'ON (Hot)':'OFF (Cool)', ok, expl:fb.pf[f.id]});
+  });
+
+  // 11-13. NPC (3pts)
+  const npcLabels = ['Advertising/branding','R&D/innovation','Quality differentiation'];
+  for (let i=0;i<3;i++){
+    const v=document.getElementById(`npc_${i}`).value;
+    const ok=v===ans.npc[i]; if(ok)total++;
+    items.push({section:'rivalry',label:'Non-price: '+npcLabels[i],student:v,correct:ans.npc[i],ok,expl:fb.npc[i]});
+  }
+
+  // 14. Overall rivalry (1pt)
+  const or=document.getElementById('overallRivalry').value;
+  const orOk=or===ans.overallRivalry; if(orOk)total++;
+  items.push({section:'rivalry',label:'Overall internal rivalry',student:or,correct:ans.overallRivalry,ok:orOk,expl:fb.rivalry});
+
+  // 15-21. Entry barriers (7pts)
+  for(let i=0;i<7;i++){
+    const v=document.getElementById(`eb_${i}`).value;
+    const ok=v===ans.entry[i]; if(ok)total++;
+    items.push({section:'entry',label:EB[i],student:v,correct:ans.entry[i],ok,expl:fb.entry[i]});
+  }
+
+  // 22. Overall entry (1pt)
+  const oe=document.getElementById('overallEntry').value;
+  const oeOk=oe===ans.overallEntry; if(oeOk)total++;
+  items.push({section:'entry',label:'Overall threat of entry',student:oe,correct:ans.overallEntry,ok:oeOk,expl:fb.overallEntry});
+
+  // 23-25. Substitutes factors (3pts)
+  for(let i=0;i<3;i++){
+    const v=document.getElementById(`subsTable_${i}`).value;
+    const ok=v===ans.sub[i]; if(ok)total++;
+    items.push({section:'subscomps',label:SubF[i].label,student:v,correct:ans.sub[i],ok,expl:fb.sub[i]});
+  }
+
+  // 26. Overall subs (1pt)
+  const os=document.getElementById('overallSubs').value;
+  const osOk=os===ans.overallSubs; if(osOk)total++;
+  items.push({section:'subscomps',label:'Overall threat from substitutes',student:os,correct:ans.overallSubs,ok:osOk,expl:fb.overallSubs});
+
+  // 27-29. Complements factors (3pts)
+  for(let i=0;i<3;i++){
+    const v=document.getElementById(`compsTable_${i}`).value;
+    const ok=v===ans.comp[i]; if(ok)total++;
+    items.push({section:'subscomps',label:CompF[i].label,student:v,correct:ans.comp[i],ok,expl:fb.comp[i]});
+  }
+
+  // 30. Overall comps (1pt)
+  const oc=document.getElementById('overallComps').value;
+  const ocOk=oc===ans.overallComps; if(ocOk)total++;
+  items.push({section:'subscomps',label:'Overall contribution of complements',student:oc,correct:ans.overallComps,ok:ocOk,expl:fb.overallComps});
+
+  // 25-27. Supplier factors 1,3,5 (3pts)
+  const supIdx=[1,3,5];
+  supIdx.forEach(i=>{
+    const v=document.getElementById(`supplierTable_${i}`).value;
+    const ok=v===ans.sup[i]; if(ok)total++;
+    items.push({section:'supplier',label:SF[i].label,student:v,correct:ans.sup[i],ok,expl:fb.sup[i]});
+  });
+
+  // 28. Overall supplier (1pt)
+  const osp=document.getElementById('overallSupplier').value;
+  const ospOk=osp===ans.overallSupplier; if(ospOk)total++;
+  items.push({section:'supplier',label:'Overall supplier power',student:osp,correct:ans.overallSupplier,ok:ospOk,expl:fb.overallSupplier});
+
+  // 29-30. Buyer factors 1,5 (2pts)
+  const buyIdx=[1,5];
+  buyIdx.forEach(i=>{
+    const v=document.getElementById(`buyerTable_${i}`).value;
+    const ok=v===ans.buy[i]; if(ok)total++;
+    items.push({section:'buyer',label:BF[i].label,student:v,correct:ans.buy[i],ok,expl:fb.buy[i]});
+  });
+
+  // 31. Overall buyer (1pt)
+  const ob=document.getElementById('overallBuyer').value;
+  const obOk=ob===ans.overallBuyer; if(obOk)total++;
+  items.push({section:'buyer',label:'Overall buyer power',student:ob,correct:ans.overallBuyer,ok:obOk,expl:fb.overallBuyer});
+
+  // 32. Overall profitability (1pt)
+  const pv=document.querySelector('input[name="profitability"]:checked').value;
+  const pvOk=pv===ans.overallProfitability; if(pvOk)total++;
+  items.push({section:'profitability',label:'Overall industry profitability',student:pv,correct:ans.overallProfitability,ok:pvOk,expl:fb.profitability});
+
+  return {total, items};
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SUBMIT & REPORT
+   ═══════════════════════════════════════════════════════════════════════════ */
+function submitQuiz() {
+  const missing = validate();
+  const msg = document.getElementById('valMsg');
+  if (missing.length > 0) {
+    msg.textContent = `Please complete all required fields (${missing.length} missing). Look for red-highlighted selects.`;
+    msg.classList.add('show');
+    return;
+  }
+  msg.classList.remove('show');
+
+  const {total, items} = grade();
+  const ind = industries[selectedIndustry];
+  const name = document.getElementById('studentName').value;
+  const date = document.getElementById('reportDate').value;
+
+  // Grade colour
+  let gColor, gLabel;
+  if(total>=34){gColor='#337A33';gLabel='Excellent';}
+  else if(total>=27){gColor='#40B3BC';gLabel='Very Good';}
+  else if(total>=21){gColor='#FFA240';gLabel='Good';}
+  else if(total>=16){gColor='#e85d26';gLabel='Sufficient';}
+  else{gColor='#CC3333';gLabel='Insufficient';}
+
+  // Build sections
+  const sections = [
+    {key:'rivalry', title:'1. Internal Rivalry', max:14},
+    {key:'entry', title:'2. Threat of Entry', max:8},
+    {key:'subscomps', title:'3. Substitutes & Complements', max:8},
+    {key:'supplier', title:'4. Supplier Power', max:4},
+    {key:'buyer', title:'5. Buyer Power', max:3},
+    {key:'profitability', title:'Overall Industry Profitability', max:1},
+  ];
+
+  let sectionsHTML = '';
+  sections.forEach(sec => {
+    const secItems = items.filter(it => it.section === sec.key);
+    const secScore = secItems.filter(it => it.ok).length;
+    const scoreColor = secScore >= sec.max*0.75 ? '#337A33' : secScore >= sec.max*0.5 ? '#FFA240' : '#CC3333';
+    sectionsHTML += `<div class="report-section"><h3>${sec.title}<span class="section-score" style="background:${scoreColor}">${secScore}/${sec.max}</span></h3>`;
+    secItems.forEach(it => {
+      sectionsHTML += `<div class="report-item ${it.ok?'correct':'wrong'}">
+        <span class="ri-icon ${it.ok?'correct':'wrong'}">${it.ok?'✓':'✗'}</span>
+        <div class="ri-text">
+          <div class="ri-label">${it.label}</div>
+          <div class="ri-answer">Your answer: <strong>${it.student}</strong>${it.ok?'':' — Correct: <strong>'+it.correct+'</strong>'}</div>
+          <div class="ri-expl">${it.expl}</div>
+        </div>
+      </div>`;
+    });
+    sectionsHTML += '</div>';
+  });
+
+  document.getElementById('reportView').innerHTML = `
+    <div class="report-card">
+      <div class="grade-display">
+        <div class="grade-circle" style="background:${gColor}">${total}</div>
+        <div class="grade-label" style="color:${gColor}">${gLabel}</div>
+        <div class="grade-sub">${total} / 38 points</div>
+      </div>
+      <div class="report-meta">
+        <strong>${ind.title}</strong><br>
+        ${name?name:''}${name&&date?' — ':''}${date?date:''}
+      </div>
+      ${sectionsHTML}
+      <p style="text-align:center;color:#999;font-size:0.78rem;margin-top:16px">30402 Principles of Management — Bocconi University — 2025-2026</p>
+    </div>
+    <div class="report-actions">
+      <button class="btn btn-secondary" onclick="backToForm()">Edit Answers</button>
+      <button class="btn btn-primary" onclick="window.print()">Print / Save PDF</button>
+    </div>`;
+
+  document.getElementById('formView').classList.add('hidden');
+  document.getElementById('reportView').classList.add('active');
+  document.querySelector('.nav').style.display = 'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function backToForm() {
+  document.getElementById('formView').classList.remove('hidden');
+  document.getElementById('reportView').classList.remove('active');
+  document.querySelector('.nav').style.display = 'flex';
+  goSection(6);
+}
+
+init();
+</script>
+</body>
+</html>
