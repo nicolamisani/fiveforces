@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Five Forces — Game Host</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+/* ── Reset & base ──────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #fff;
+  color: #1e293b;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+h1, h2, h3, .playfair {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* ── Screen management ─────────────────────── */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ── Welcome screen ────────────────────────── */
+#screen-welcome {
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: #fff;
+  text-align: center;
+  padding: 40px;
+}
+.welcome-emoji { font-size: 4rem; }
+.welcome-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #7c3aed;
+  line-height: 1.2;
+}
+.welcome-sub {
+  font-size: 1.2rem;
+  color: #64748b;
+  max-width: 500px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 40px;
+  border: none;
+  border-radius: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+.btn-primary {
+  background: #7c3aed;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(124,58,237,0.3);
+}
+.btn-primary:hover { box-shadow: 0 6px 28px rgba(124,58,237,0.4); }
+.btn-secondary {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ── Lobby screen ──────────────────────────── */
+#screen-lobby {
+  align-items: center;
+  padding: 40px 20px;
+  gap: 24px;
+  background: #fff;
+}
+.lobby-header { text-align: center; }
+.lobby-label {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #7c3aed;
+  margin-bottom: 8px;
+}
+.room-code {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 6rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #1e293b;
+  background: #f8fafc;
+  border: 3px solid #7c3aed;
+  border-radius: 20px;
+  padding: 10px 50px;
+  text-align: center;
+}
+.lobby-url {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-top: 8px;
+}
+.player-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  max-width: 900px;
+  min-height: 60px;
+}
+.player-tile {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  animation: popIn 0.3s ease;
+}
+@keyframes popIn {
+  0% { transform: scale(0); opacity: 0; }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.player-count {
+  font-size: 1.1rem;
+  color: #64748b;
+}
+.player-count strong { color: #7c3aed; }
+
+/* ── Playing screen ────────────────────────── */
+#screen-playing {
+  padding: 20px;
+  background: #fff;
+}
+.playing-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  margin-bottom: 20px;
+}
+.round-badge {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #7c3aed;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.host-timer {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #1e293b;
+  background: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 8px 24px;
+  min-width: 100px;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+.host-timer.urgent {
+  color: #dc2626;
+  border-color: #fca5a5;
+  background: #fef2f2;
+  animation: timerPulse 1s infinite;
+}
+@keyframes timerPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+.submission-counter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.counter-bar {
+  width: 200px;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.counter-fill {
+  height: 100%;
+  background: #7c3aed;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+.counter-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #64748b;
+}
+.counter-text strong { color: #7c3aed; }
+
+.scenario-card {
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 18px;
+  overflow: hidden;
+  max-width: 1100px;
+  margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+.scenario-hero {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  position: relative;
+}
+.scenario-content {
+  padding: 24px 32px 28px;
+}
+.scenario-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+.scenario-narrative {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #475569;
+}
+.scenario-narrative strong { color: #7c3aed; font-weight: 600; }
+.players-to-classify {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+.players-to-classify h3 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+.player-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.player-chip {
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6d28d9;
+}
+.playing-actions {
+  text-align: center;
+  margin-top: 24px;
+}
+
+/* ── Review screen ─────────────────────────── */
+#screen-review {
+  padding: 20px;
+  background: #fff;
+}
+.review-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.review-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.6rem;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+.review-subtitle {
+  font-size: 1rem;
+  color: #64748b;
+}
+.review-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.solution-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+}
+.solution-panel h3 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-bottom: 14px;
+}
+.force-group {
+  margin-bottom: 14px;
+}
+.force-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.force-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.force-group-items {
+  padding-left: 18px;
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.leaderboard-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.leaderboard-panel h3 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-bottom: 14px;
+}
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin-bottom: 4px;
+  transition: background 0.2s;
+}
+.lb-row:nth-child(odd) { background: #f1f5f9; }
+.lb-row.top-1 { background: #fefce8; }
+.lb-row.top-2 { background: #f1f5f9; }
+.lb-row.top-3 { background: #fff7ed; }
+.lb-rank {
+  width: 28px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #64748b;
+}
+.top-1 .lb-rank { color: #eab308; font-size: 1.2rem; }
+.top-2 .lb-rank { color: #94a3b8; font-size: 1.1rem; }
+.top-3 .lb-rank { color: #b45309; font-size: 1.05rem; }
+.lb-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1e293b;
+}
+.lb-round-score {
+  font-size: 0.85rem;
+  color: #7c3aed;
+  font-weight: 600;
+  min-width: 50px;
+  text-align: right;
+}
+.lb-total {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #1e293b;
+  min-width: 50px;
+  text-align: right;
+}
+.review-actions {
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* ── Final screen ──────────────────────────── */
+#screen-final {
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px 20px;
+  background: #fff;
+  text-align: center;
+}
+.final-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+.podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+  margin: 10px 0;
+}
+.podium-place {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.podium-bar {
+  width: 140px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 16px 10px;
+}
+.podium-1 .podium-bar { height: 180px; background: #eab308; }
+.podium-2 .podium-bar { height: 140px; background: #94a3b8; }
+.podium-3 .podium-bar { height: 110px; background: #b45309; }
+.podium-medal { font-size: 2rem; }
+.podium-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #fff;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.podium-score {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.7);
+  font-weight: 600;
+}
+.final-leaderboard {
+  width: 100%;
+  max-width: 600px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  max-height: 40vh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+/* ── Confetti ──────────────────────────────── */
+.confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  z-index: 1000;
+  pointer-events: none;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* ── QR code section ──────────────────────── */
+.player-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+.player-link { text-align: center; }
+
+/* ── Responsive ────────────────────────────── */
+@media (max-width: 900px) {
+  .room-code { font-size: 3.5rem; padding: 10px 30px; }
+  .welcome-title { font-size: 2.4rem; }
+  .review-grid { grid-template-columns: 1fr; }
+  .podium-bar { width: 100px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ Welcome Screen ══════════════════════════ -->
+<div id="screen-welcome" class="screen active">
+  <div class="welcome-emoji">🏭</div>
+  <div class="welcome-title">Five Forces<br>Multiplayer</div>
+  <div class="welcome-sub">A Kahoot-style classroom game for Porter's Five Forces drag & drop exercise</div>
+  <div class="player-qr">
+    <img id="welcome-qr" alt="QR code" style="width:320px;height:320px;border-radius:16px;background:#fff;padding:12px">
+    <div class="player-link"><a href="https://ulvis.net/JYb5" target="_blank" style="color:#7c3aed;font-weight:800;font-size:2.2rem;letter-spacing:0.02em">ulvis.net/JYb5</a></div>
+  </div>
+  <button class="btn btn-primary" id="btn-create">Create Game</button>
+</div>
+
+<!-- ══ Lobby Screen ════════════════════════════ -->
+<div id="screen-lobby" class="screen">
+  <div class="lobby-header">
+    <div class="lobby-label">Game PIN</div>
+    <div class="room-code" id="room-code">----</div>
+    <div class="player-qr" style="margin-top:16px">
+      <img id="lobby-qr" alt="QR code" style="width:280px;height:280px;border-radius:16px;background:#fff;padding:12px">
+      <div class="player-link"><a href="https://ulvis.net/JYb5" target="_blank" style="color:#7c3aed;font-weight:800;font-size:1.8rem;letter-spacing:0.02em">ulvis.net/JYb5</a></div>
+    </div>
+  </div>
+  <div class="player-count"><strong id="player-count-num">0</strong> players connected</div>
+  <div class="player-grid" id="player-grid"></div>
+  <button class="btn btn-primary" id="btn-start" disabled>Start Game</button>
+  <button class="btn btn-secondary" id="btn-music" style="margin-top:12px">🎵 Music: OFF</button>
+  <button class="btn btn-secondary" id="btn-music-custom" style="margin-top:8px; font-size:0.85rem; padding:8px 20px">Upload your own music</button>
+  <input type="file" id="music-file" accept="audio/*" style="display:none">
+</div>
+
+<!-- ══ Playing Screen ══════════════════════════ -->
+<div id="screen-playing" class="screen">
+  <div class="playing-topbar">
+    <div class="round-badge" id="round-badge">Round 1 of 5</div>
+    <div class="host-timer" id="host-timer">3:00</div>
+    <div class="submission-counter">
+      <div class="counter-bar"><div class="counter-fill" id="counter-fill"></div></div>
+      <div class="counter-text"><strong id="sub-count">0</strong> / <span id="sub-total">0</span> submitted</div>
+    </div>
+  </div>
+  <div class="scenario-card">
+    <div class="scenario-hero" id="scenario-hero"><span id="scenario-emoji"></span></div>
+    <div class="scenario-content">
+      <div class="scenario-title" id="scenario-title-play"></div>
+      <div class="scenario-narrative" id="scenario-narrative"></div>
+      <div class="players-to-classify">
+        <h3>Players to classify into the five forces</h3>
+        <div class="player-chips" id="player-chips"></div>
+      </div>
+    </div>
+  </div>
+  <div class="playing-actions">
+    <button class="btn btn-primary" id="btn-end-round">Show Results</button>
+    <button class="btn btn-secondary" id="btn-end-game-playing" style="margin-left:12px">End Game</button>
+  </div>
+</div>
+
+<!-- ══ Review Screen ═══════════════════════════ -->
+<div id="screen-review" class="screen">
+  <div class="review-header">
+    <div class="review-subtitle" id="review-round-label">Round 1 of 5</div>
+    <div class="review-title" id="review-title"></div>
+  </div>
+  <div class="review-grid">
+    <div class="solution-panel">
+      <h3>Correct Classification</h3>
+      <div id="solution-content"></div>
+    </div>
+    <div class="leaderboard-panel">
+      <h3>Leaderboard</h3>
+      <div id="leaderboard-review"></div>
+    </div>
+  </div>
+  <div class="review-actions">
+    <button class="btn btn-primary" id="btn-next-round">Next Round</button>
+    <button class="btn btn-secondary" id="btn-end-game-review" style="margin-left:12px">End Game</button>
+  </div>
+</div>
+
+<!-- ══ Final Screen ════════════════════════════ -->
+<div id="screen-final" class="screen">
+  <div class="final-title">Final Results</div>
+  <div class="podium" id="podium"></div>
+  <div class="final-leaderboard" id="final-leaderboard"></div>
+  <button class="btn btn-secondary" id="btn-new-game">New Game</button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   FIREBASE CONFIGURATION
+   ═══════════════════════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyDAydLhj2zrb0d_OCKQg7K0jhiSNwZBoUU",
+  authDomain: "five-forces-game.firebaseapp.com",
+  databaseURL: "https://five-forces-game-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "five-forces-game",
+  storageBucket: "five-forces-game.firebasestorage.app",
+  messagingSenderId: "565256080396",
+  appId: "1:565256080396:web:11897da9cd75fb8f083229"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/*
+  Firebase Security Rules (paste into Firebase Console → Realtime Database → Rules
+  after test mode expires):
+
+  {
+    "rules": {
+      "rooms": {
+        "$roomId": {
+          ".read": true,
+          ".write": true
+        }
+      }
+    }
+  }
+*/
+
+/* ═══════════════════════════════════════════════════════════════
+   SCENARIOS DATA (same as single-player app)
+   ═══════════════════════════════════════════════════════════════ */
+const SCENARIOS = [
+  {
+    id: "airlines",
+    title: "The European Airline Industry",
+    emoji: "✈️",
+    color: "#dbeafe",
+    narrative: `The European airline industry has undergone massive transformation since deregulation in the 1990s. What was once a collection of protected national flag carriers is now one of the most contested transport markets in the world, shaped by price wars, capacity battles, and shifting consumer expectations. Margins are thin — even the largest carriers earn only single-digit returns on capital in good years, while fuel costs and regulatory burdens keep pressure on.<br><br><strong>Ryanair and EasyJet</strong> operate point-to-point networks across hundreds of routes with relentless cost discipline. <strong>Lufthansa and Air France-KLM</strong> manage complex hub-and-spoke systems, alliance partnerships (Star Alliance, SkyTeam), and premium cabins. Aircraft orders require years of planning and are placed with <strong>Boeing and Airbus</strong>, who between them build virtually every commercial jet in the world. At congested airports, <strong>airport authorities controlling landing slots</strong> determine who can fly where and when — slots at Heathrow alone trade for tens of millions of dollars.<br><br>On the demand side, <strong>corporate travel departments</strong> aggregate bookings across entire organisations and use that volume to negotiate. <strong>Online travel agencies (Skyscanner, Kayak)</strong> allow any passenger to compare fares in seconds, making brand loyalty difficult to maintain. For journeys under four hours, <strong>high-speed rail (TGV, Eurostar)</strong> offers city-centre-to-city-centre speed that often beats flying. Since 2020, <strong>video conferencing (Zoom, Teams)</strong> has eliminated a meaningful slice of business travel demand entirely. Meanwhile, <strong>Gulf carriers (Emirates, Qatar Airways)</strong> have built massive operations at geographic crossroads, offering competitive connecting itineraries between Europe and Asia. <strong>Ultra-low-cost startups (PLAY, Wizz Air)</strong> continue to launch with even leaner cost structures than existing budget carriers.`,
+    players: [
+      { name: "Ryanair and EasyJet", force: "rivalry" },
+      { name: "Lufthansa and Air France-KLM", force: "rivalry" },
+      { name: "Boeing and Airbus", force: "suppliers" },
+      { name: "Airport authorities (landing slots)", force: "suppliers" },
+      { name: "Corporate travel departments", force: "buyers" },
+      { name: "Online travel agencies (Skyscanner, Kayak)", force: "buyers" },
+      { name: "High-speed rail (TGV, Eurostar)", force: "substitutes" },
+      { name: "Video conferencing (Zoom, Teams)", force: "substitutes" },
+      { name: "Gulf carriers (Emirates, Qatar Airways)", force: "entrants" },
+      { name: "Ultra-low-cost startups (PLAY, Wizz Air)", force: "entrants" }
+    ]
+  },
+  {
+    id: "streaming",
+    title: "The Video Streaming Industry",
+    emoji: "🎬",
+    color: "#ede9fe",
+    narrative: `A decade ago, streaming was Netflix's game to lose. Today the industry has fractured into a crowded landscape where profitability remains elusive for most players. The average American household subscribes to four services but regularly cancels and re-subscribes — a phenomenon known as "subscription fatigue." Content budgets have ballooned past $15 billion per year for the biggest platforms, yet subscriber growth has stalled in mature markets. The industry is now pivoting toward ad-supported tiers and live sports rights.<br><br><strong>Netflix</strong> has 250+ million subscribers worldwide and pioneered the binge-release model. <strong>Disney+ and HBO Max</strong> draw on decades of beloved franchises — Marvel, Star Wars, DC, Harry Potter — to attract families and fandoms. <strong>Amazon Prime Video</strong> is bundled with a shopping membership, making its true standalone value hard to isolate. Every platform needs programming, and <strong>major Hollywood studios</strong> control libraries of thousands of titles that audiences expect. <strong>A-list showrunners and directors</strong> like Shonda Rhimes and Ryan Murphy sign exclusive multi-year deals worth hundreds of millions, and their departure can reshape a platform's identity overnight.<br><br><strong>Price-sensitive households</strong> juggle subscriptions month-to-month, signing up for a specific show and cancelling once they've watched it. <strong>Telecom companies bundling streaming</strong> (T-Mobile/Netflix, Vodafone/Disney+) negotiate bulk licensing deals that push per-subscriber revenue down. Meanwhile, consumers' leisure time is finite: <strong>TikTok and YouTube (free content)</strong> capture hours of attention with algorithmically served short-form video, and <strong>mobile gaming (Fortnite, Roblox)</strong> competes for the same evening and weekend hours. <strong>Apple TV+ (deep-pocketed new entrant)</strong> continues to spend aggressively on prestige originals, absorbing years of losses as a rounding error on Apple's balance sheet.`,
+    players: [
+      { name: "Netflix", force: "rivalry" },
+      { name: "Disney+ and HBO Max", force: "rivalry" },
+      { name: "Amazon Prime Video", force: "rivalry" },
+      { name: "Major Hollywood studios", force: "suppliers" },
+      { name: "A-list showrunners and directors", force: "suppliers" },
+      { name: "Price-sensitive households", force: "buyers" },
+      { name: "Telecom companies bundling streaming", force: "buyers" },
+      { name: "TikTok and YouTube (free content)", force: "substitutes" },
+      { name: "Mobile gaming (Fortnite, Roblox)", force: "substitutes" },
+      { name: "Apple TV+ (deep-pocketed new entrant)", force: "entrants" }
+    ]
+  },
+  {
+    id: "supermarkets",
+    title: "The European Supermarket Industry",
+    emoji: "🛒",
+    color: "#dcfce7",
+    narrative: `Grocery retailing in Europe is a €2.5 trillion market characterised by razor-thin net margins — typically 2–3% — and extraordinary operational complexity. Chains manage thousands of SKUs, cold-chain logistics, and perishable inventory that must move from farm to shelf within days. Consumer spending on food is relatively stable even in recessions, but shoppers are fiercely value-conscious and will switch stores for a few cents per item. Private-label products now account for 30–40% of sales in many European markets, further intensifying price competition.<br><br><strong>Carrefour and Tesco</strong> operate hypermarkets, supermarkets, and convenience formats across multiple countries. <strong>Lidl and Aldi</strong> run stripped-down stores with limited assortments and aggressive pricing — their expansion has reshaped the competitive landscape everywhere they've opened. On the supply side, <strong>Nestlé, Unilever, and P&G</strong> produce iconic brands that consumers specifically seek out — Nutella, Persil, Pampers — giving these manufacturers significant negotiating weight. <strong>Local farmers and dairy cooperatives</strong> provide fresh produce and regional products; when disputes arise, they can and do withhold supply.<br><br><strong>Price-sensitive families (comparison apps)</strong> use digital tools to track promotions and switch between stores week to week with minimal friction. <strong>Restaurants and hotel chains (B2B)</strong> purchase in bulk through dedicated procurement channels and negotiate hard on price. An increasing share of household food spending now goes to <strong>meal-kit delivery (HelloFresh, Gousto)</strong>, which provides pre-portioned ingredients shipped to the door, and to <strong>fast-food and takeout platforms</strong> like Deliveroo and Uber Eats. <strong>Amazon Fresh</strong> has rolled out same-day grocery delivery in major European cities, leveraging its logistics network. <strong>Rapid grocery delivery startups</strong> such as Getir and Gorillas promise delivery in 10–15 minutes from urban micro-fulfilment centres.`,
+    players: [
+      { name: "Carrefour and Tesco", force: "rivalry" },
+      { name: "Lidl and Aldi", force: "rivalry" },
+      { name: "Nestlé, Unilever, and P&G", force: "suppliers" },
+      { name: "Local farmers and dairy cooperatives", force: "suppliers" },
+      { name: "Price-sensitive families (comparison apps)", force: "buyers" },
+      { name: "Restaurants and hotel chains (B2B)", force: "buyers" },
+      { name: "Meal-kit delivery (HelloFresh, Gousto)", force: "substitutes" },
+      { name: "Fast-food and takeout platforms", force: "substitutes" },
+      { name: "Amazon Fresh", force: "entrants" },
+      { name: "Rapid grocery delivery startups", force: "entrants" }
+    ]
+  },
+  {
+    id: "pharma",
+    title: "The Global Pharmaceutical Industry",
+    emoji: "💊",
+    color: "#fce7f3",
+    narrative: `The global pharmaceutical industry generates over $1.5 trillion in annual revenue, yet bringing a single drug to market costs an average of $2.6 billion and takes 10–15 years. Patent protection grants temporary monopoly pricing, but once a patent expires, revenue can collapse by 80% within months. The industry's economics are therefore built on a relentless cycle of R&D investment, blockbuster launches, and patent cliffs. Regulatory requirements from the FDA and EMA add years and billions to development timelines.<br><br><strong>Pfizer and Johnson & Johnson</strong> maintain portfolios spanning oncology, immunology, and vaccines. <strong>Roche and Novartis</strong> are leaders in biologics and precision medicine. The production of active pharmaceutical ingredients depends on <strong>specialized chemical ingredient suppliers</strong> concentrated in a small number of facilities worldwide — qualification of a new supplier can take two years or more. Running the multi-phase clinical trials required for regulatory approval depends on <strong>contract research organizations (CROs)</strong> like IQVIA and Covance, which manage patient recruitment and data across dozens of countries.<br><br>The purchasing landscape is complex. <strong>Hospital purchasing committees</strong> decide which drugs make it onto formularies — the approved lists from which physicians can prescribe. <strong>Government health agencies and insurers</strong> set reimbursement levels and negotiate (or impose) price ceilings, directly determining what a drug actually earns. When patents expire, <strong>generic drug manufacturers (Teva, Mylan)</strong> produce bioequivalent versions at a fraction of the original price. In some therapeutic areas, <strong>alternative and holistic medicine</strong> attracts patients away from pharmaceutical treatments altogether. <strong>Biotech startups (gene & cell therapy)</strong> are developing entirely new modalities — CRISPR-based gene editing, CAR-T cell therapies — that could make traditional drug molecules obsolete. <strong>Big Tech health ventures (Google, Amazon)</strong> are investing in AI-driven drug discovery and direct-to-consumer pharmacy distribution.`,
+    players: [
+      { name: "Pfizer and Johnson & Johnson", force: "rivalry" },
+      { name: "Roche and Novartis", force: "rivalry" },
+      { name: "Specialized chemical ingredient suppliers", force: "suppliers" },
+      { name: "Contract research organizations (CROs)", force: "suppliers" },
+      { name: "Hospital purchasing committees", force: "buyers" },
+      { name: "Government health agencies and insurers", force: "buyers" },
+      { name: "Generic drug manufacturers (Teva, Mylan)", force: "substitutes" },
+      { name: "Alternative and holistic medicine", force: "substitutes" },
+      { name: "Biotech startups (gene & cell therapy)", force: "entrants" },
+      { name: "Big Tech health ventures (Google, Amazon)", force: "entrants" }
+    ]
+  },
+  {
+    id: "ev",
+    title: "The Electric Vehicle Market",
+    emoji: "🚗⚡",
+    color: "#cffafe",
+    narrative: `The global automotive industry is in the midst of its most disruptive transition since the Model T. Electric vehicles accounted for roughly 18% of global new car sales in 2024, up from under 3% in 2019. Governments worldwide are setting deadlines for banning internal combustion engine sales — the EU targets 2035, California by 2035, and several countries even earlier. The shift has redrawn competitive boundaries: traditional manufacturing expertise matters less than software, batteries, and charging ecosystems. Capital requirements remain enormous — a single EV assembly plant costs $2–5 billion.<br><br><strong>Tesla</strong> defined the modern EV category and still leads in brand recognition and software integration. <strong>BYD</strong> has become the world's largest EV manufacturer by volume, with vertically integrated battery production and models priced below $15,000 in China. <strong>Volkswagen and Hyundai</strong> are spending tens of billions to convert their legacy factories and model lineups. On the input side, <strong>CATL and LG Energy Solution (batteries)</strong> produce the majority of the world's EV battery cells — automakers queue for allocation and sign multi-year supply agreements. <strong>Rare-earth mineral miners</strong> control access to lithium, cobalt, and nickel, with extraction concentrated in a handful of countries (Australia, Chile, the DRC).<br><br><strong>Fleet managers and rental car companies</strong> like Hertz and Sixt place orders for thousands of vehicles at once, expecting substantial volume discounts. <strong>Government procurement programs</strong> specify technical requirements (range, charging standards) and offer subsidies that shape which models succeed. Many consumers still weigh EVs against <strong>plug-in hybrids and fuel-efficient cars</strong> — vehicles that cost less upfront and don't require charging infrastructure. In dense cities, <strong>public transit and ride-sharing</strong> services like Uber and Bolt reduce the perceived need for personal vehicle ownership entirely. <strong>Rivian, Lucid, NIO, and XPeng</strong> have each raised billions in capital and are now selling vehicles in North America and Europe.`,
+    players: [
+      { name: "Tesla", force: "rivalry" },
+      { name: "BYD", force: "rivalry" },
+      { name: "Volkswagen and Hyundai", force: "rivalry" },
+      { name: "CATL and LG Energy Solution (batteries)", force: "suppliers" },
+      { name: "Rare-earth mineral miners", force: "suppliers" },
+      { name: "Fleet managers and rental car companies", force: "buyers" },
+      { name: "Government procurement programs", force: "buyers" },
+      { name: "Plug-in hybrids and fuel-efficient cars", force: "substitutes" },
+      { name: "Public transit and ride-sharing", force: "substitutes" },
+      { name: "Rivian, Lucid, NIO, and XPeng", force: "entrants" }
+    ]
+  },
+  {
+    id: "luxury",
+    title: "The Luxury Fashion Industry",
+    emoji: "👜",
+    color: "#fef3c7",
+    narrative: `The personal luxury goods market is worth approximately €350 billion and is one of the few industries where higher prices can actually increase demand — a phenomenon economists call "Veblen goods." Brand heritage, craftsmanship narratives, and controlled scarcity are the primary sources of competitive advantage. The industry is unusually concentrated: the top three conglomerates control roughly half of the global market. Margins are extraordinary — operating margins above 25% are common for leading houses — but maintaining them requires constant reinvestment in brand image, flagship stores, and creative direction.<br><br><strong>LVMH (Louis Vuitton, Dior)</strong> is the world's largest luxury group, with over 75 houses spanning fashion, wine, jewellery, and hospitality. <strong>Kering (Gucci, Saint Laurent)</strong> competes directly for the same affluent customers and the same creative talent. <strong>Hermès</strong> follows a different playbook entirely: extreme scarcity, multi-year waitlists, and almost no discounting. The production of luxury goods depends critically on <strong>Italian leather tanneries</strong> in Tuscany's Santa Croce district, where generations of expertise produce materials no factory can replicate. Similarly, <strong>skilled artisan workshops</strong> in France and Italy employ craftspeople who train for years — their expertise is the literal hands behind every handbag, shoe, and coat.<br><br><strong>High-net-worth individuals</strong> — the top 1% of consumers who drive over 40% of luxury spending — expect personalised experiences and can shift allegiances based on a single runway show. <strong>Luxury department stores (Harrods, Rinascente)</strong> control prime physical retail environments and decide which brands get the best floor space and window displays. Consumers are increasingly considering <strong>premium fast-fashion (Zara Studio, COS)</strong>, which offers design-forward pieces at a tenth of the price, and <strong>second-hand luxury platforms (Vestiaire, RealReal)</strong>, where authenticated pre-owned goods circulate at 50–70% discounts. <strong>Digital-native brands (social media)</strong> are building followings of millions on Instagram and TikTok and selling directly, bypassing every traditional distribution channel.`,
+    players: [
+      { name: "LVMH (Louis Vuitton, Dior)", force: "rivalry" },
+      { name: "Kering (Gucci, Saint Laurent)", force: "rivalry" },
+      { name: "Hermès", force: "rivalry" },
+      { name: "Italian leather tanneries", force: "suppliers" },
+      { name: "Skilled artisan workshops", force: "suppliers" },
+      { name: "High-net-worth individuals", force: "buyers" },
+      { name: "Luxury department stores (Harrods, Rinascente)", force: "buyers" },
+      { name: "Premium fast-fashion (Zara Studio, COS)", force: "substitutes" },
+      { name: "Second-hand luxury platforms (Vestiaire, RealReal)", force: "substitutes" },
+      { name: "Digital-native brands (social media)", force: "entrants" }
+    ]
+  },
+  {
+    id: "cloud",
+    title: "The Cloud Computing Industry",
+    emoji: "☁️",
+    color: "#e0e7ff",
+    narrative: `Cloud computing has become the foundation of the modern digital economy. Worldwide spending on cloud infrastructure exceeded $270 billion in 2024, growing at roughly 20% per year. The industry exhibits extreme economies of scale: running a global network of data centres requires tens of billions in upfront capital, but the marginal cost of serving an additional customer is near zero. This creates a market structure where a small number of hyperscale providers capture the vast majority of revenue. Switching costs are high because applications are often deeply integrated with a specific provider's proprietary APIs and services.<br><br><strong>Amazon Web Services (AWS)</strong> pioneered the market in 2006 and holds approximately 31% share. <strong>Microsoft Azure</strong> leverages its dominance in enterprise software (Office 365, Windows Server) to migrate existing customers. <strong>Google Cloud Platform</strong> differentiates through AI/ML capabilities and data analytics. Building and operating data centres at this scale requires cutting-edge processors, GPUs, and custom silicon from <strong>semiconductor manufacturers (NVIDIA, AMD)</strong> — demand for AI-training chips currently far exceeds supply. The physical infrastructure itself — fibre-optic cables crossing ocean floors, land for massive server farms — is controlled by <strong>undersea cable operators and data centre landlords</strong> like Equinix and Digital Realty.<br><br><strong>Enterprise IT departments and CTOs</strong> decide which cloud providers to use, how much to spend, and increasingly adopt multi-cloud strategies to avoid dependence on any single platform. <strong>Software vendors and system integrators</strong> like Accenture, Deloitte, and SAP build solutions on top of cloud platforms and steer their clients' spending toward their preferred provider. Some organisations choose to keep workloads on <strong>on-premise data centres</strong> — hardware they own and operate in their own buildings — for control, compliance, or cost reasons. Others are exploring <strong>edge computing solutions</strong> that process data closer to where it's generated (factories, vehicles, retail stores) rather than sending everything to a centralised cloud. <strong>Oracle Cloud and Alibaba Cloud</strong> have invested billions to expand beyond their traditional strongholds in database software and Chinese e-commerce respectively, competing for global enterprise contracts.`,
+    players: [
+      { name: "Amazon Web Services (AWS)", force: "rivalry" },
+      { name: "Microsoft Azure", force: "rivalry" },
+      { name: "Google Cloud Platform", force: "rivalry" },
+      { name: "Semiconductor manufacturers (NVIDIA, AMD)", force: "suppliers" },
+      { name: "Undersea cable operators and data centre landlords", force: "suppliers" },
+      { name: "Enterprise IT departments and CTOs", force: "buyers" },
+      { name: "Software vendors and system integrators", force: "buyers" },
+      { name: "On-premise data centres", force: "substitutes" },
+      { name: "Edge computing solutions", force: "substitutes" },
+      { name: "Oracle Cloud and Alibaba Cloud", force: "entrants" }
+    ]
+  },
+  {
+    id: "coffee",
+    title: "The Italian Coffee Shop Market",
+    emoji: "☕",
+    color: "#fef9c3",
+    narrative: `Italy consumes roughly 6 billion cups of coffee per year, and the bar (café) is a cornerstone of daily life — a ritual more than a transaction. The average Italian espresso costs €1.10–1.50, a price kept low by intense local competition and cultural expectation. Yet beneath this tradition lies a rapidly evolving market. Consumption patterns are shifting as younger Italians develop tastes for specialty brews, longer café visits, and international formats. The pandemic accelerated at-home consumption, and new concepts are challenging the century-old neighbourhood bar model.<br><br><strong>Traditional neighbourhood bars</strong> — Italy has over 150,000 of them — serve quick stand-up espressos with paper-thin margins and rely on volume and habit. <strong>Starbucks Reserve</strong> entered Milan in 2018 with a dramatic 25,000-square-foot Roastery and has since expanded to Rome and other cities, charging premium prices for an "experience" format. <strong>McCafé (McDonald's)</strong> offers espresso-based drinks at low prices inside 600+ Italian McDonald's locations, appealing to convenience and cost. Coffee bars depend on <strong>major roasters (Lavazza, Illy)</strong>, who not only supply beans but also provide espresso machines, branded cups, and marketing support — relationships that create deep dependencies. The global price of arabica and robusta is set by <strong>global coffee bean traders</strong> on commodity exchanges; a frost in Brazil or drought in Vietnam can move prices 30–40% in weeks.<br><br><strong>Daily commuters and office workers</strong> typically visit the same bar every morning — but with a competing bar on every block, switching takes no effort at all. <strong>Students and remote workers</strong> are a growing segment who value Wi-Fi, power outlets, and an atmosphere conducive to spending hours — something traditional bars rarely offer. An increasing number of Italians now make quality coffee at home using <strong>home espresso machines (Nespresso, De'Longhi)</strong>, with the capsule coffee market growing at double digits annually. Supermarkets and vending machines stock <strong>ready-to-drink canned & bottled coffee</strong> — cold brews and iced lattes from brands like Starbucks, Illy, and local producers. <strong>Third-wave specialty coffee shops</strong> are opening rapidly in Milan, Turin, Florence and Rome, offering single-origin pour-overs, latte art, and an artisanal narrative that appeals to a new generation.`,
+    players: [
+      { name: "Traditional neighbourhood bars", force: "rivalry" },
+      { name: "Starbucks Reserve", force: "rivalry" },
+      { name: "McCafé (McDonald's)", force: "rivalry" },
+      { name: "Major roasters (Lavazza, Illy)", force: "suppliers" },
+      { name: "Global coffee bean traders", force: "suppliers" },
+      { name: "Daily commuters and office workers", force: "buyers" },
+      { name: "Students and remote workers", force: "buyers" },
+      { name: "Home espresso machines (Nespresso, De'Longhi)", force: "substitutes" },
+      { name: "Ready-to-drink canned & bottled coffee", force: "substitutes" },
+      { name: "Third-wave specialty coffee shops", force: "entrants" }
+    ]
+  }
+];
+
+const SCENARIO_MAP = {};
+SCENARIOS.forEach(s => SCENARIO_MAP[s.id] = s);
+
+/* ═══════════════════════════════════════════════════════════════
+   FORCE DEFINITIONS
+   ═══════════════════════════════════════════════════════════════ */
+const FORCES = {
+  rivalry:     { label: "Internal Rivalry",     icon: "⚔️", color: "#0ea5e9", dot: "#0ea5e9" },
+  suppliers:   { label: "Suppliers",            icon: "📦", color: "#8b5cf6", dot: "#8b5cf6" },
+  buyers:      { label: "Buyers",              icon: "🛒", color: "#f59e0b", dot: "#f59e0b" },
+  substitutes: { label: "Substitutes & Complements", icon: "🔄", color: "#ef4444", dot: "#ef4444" },
+  entrants:    { label: "New Entrants",         icon: "🚪", color: "#10b981", dot: "#10b981" }
+};
+const FORCE_ORDER = ["rivalry", "suppliers", "buyers", "substitutes", "entrants"];
+
+/* ═══════════════════════════════════════════════════════════════
+   GAME STATE
+   ═══════════════════════════════════════════════════════════════ */
+const NUM_ROUNDS = 5;
+let roomCode = null;
+let hostId = null;
+let gameScenarios = [];   // 5 scenario IDs for this game
+let currentRound = 0;
+let playersData = {};     // { playerId: { name, totalScore, submissions } }
+let playersListener = null;
+let hostTimerInterval = null;
+let reviewingRound = -1;  // guard against double-scoring
+let musicWasPlaying = false;
+const ROUND_SECONDS = 180; // 3 minutes
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITY
+   ═══════════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function generateCode() {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONFETTI
+   ═══════════════════════════════════════════════════════════════ */
+function spawnConfetti(count = 80) {
+  const colors = ['#0d9488','#5eead4','#eab308','#ef4444','#8b5cf6','#f59e0b','#10b981'];
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDuration = (2 + Math.random() * 2) + 's';
+    el.style.animationDelay = Math.random() * 1.5 + 's';
+    el.style.width = (6 + Math.random() * 8) + 'px';
+    el.style.height = (6 + Math.random() * 8) + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CREATE GAME
+   ═══════════════════════════════════════════════════════════════ */
+async function createGame() {
+  roomCode = generateCode();
+  hostId = 'host_' + Date.now();
+
+  // Check if room exists, regenerate if needed
+  const snap = await db.ref(`rooms/${roomCode}`).once('value');
+  if (snap.exists()) {
+    roomCode = generateCode(); // simple retry
+  }
+
+  await db.ref(`rooms/${roomCode}`).set({
+    hostId: hostId,
+    status: "lobby",
+    createdAt: firebase.database.ServerValue.TIMESTAMP
+  });
+
+  sessionStorage.setItem('ff_roomCode', roomCode);
+  sessionStorage.setItem('ff_hostId', hostId);
+
+  $('room-code').textContent = roomCode;
+  $('player-grid').innerHTML = '';
+  $('player-count-num').textContent = '0';
+  $('btn-start').disabled = true;
+  playersData = {};
+
+  showScreen('screen-lobby');
+  listenForPlayers();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LISTEN FOR PLAYERS
+   ═══════════════════════════════════════════════════════════════ */
+function listenForPlayers() {
+  if (playersListener) db.ref(`rooms/${roomCode}/players`).off('value', playersListener);
+
+  playersListener = db.ref(`rooms/${roomCode}/players`).on('value', snap => {
+    const players = snap.val() || {};
+    playersData = players;
+    const names = Object.values(players).map(p => p.name);
+
+    // Update lobby grid
+    const grid = $('player-grid');
+    grid.innerHTML = '';
+    names.forEach(name => {
+      const tile = document.createElement('div');
+      tile.className = 'player-tile';
+      tile.textContent = name;
+      grid.appendChild(tile);
+    });
+
+    $('player-count-num').textContent = names.length;
+    $('btn-start').disabled = names.length < 1;
+
+    // Update submission counter if playing
+    if (document.getElementById('screen-playing').classList.contains('active')) {
+      updateSubmissionCounter();
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   START GAME
+   ═══════════════════════════════════════════════════════════════ */
+async function startGame() {
+  gameScenarios = shuffle(SCENARIOS).slice(0, NUM_ROUNDS).map(s => s.id);
+  currentRound = 0;
+  const timerEnd = Date.now() + ROUND_SECONDS * 1000;
+
+  await db.ref(`rooms/${roomCode}`).update({
+    status: "playing",
+    currentRound: 0,
+    totalRounds: NUM_ROUNDS,
+    scenarios: gameScenarios,
+    timerEnd: timerEnd
+  });
+
+  showPlayingScreen();
+  startHostTimer(timerEnd);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PLAYING SCREEN
+   ═══════════════════════════════════════════════════════════════ */
+function showPlayingScreen() {
+  const scenarioId = gameScenarios[currentRound];
+  const sc = SCENARIO_MAP[scenarioId];
+
+  $('round-badge').textContent = `Round ${currentRound + 1} of ${NUM_ROUNDS}`;
+  $('scenario-emoji').textContent = sc.emoji;
+  $('scenario-hero').style.background = sc.color;
+  $('scenario-title-play').textContent = sc.title;
+  $('scenario-narrative').innerHTML = sc.narrative;
+
+  // Player chips (shuffled)
+  const chips = $('player-chips');
+  chips.innerHTML = '';
+  shuffle(sc.players).forEach(p => {
+    const chip = document.createElement('div');
+    chip.className = 'player-chip';
+    chip.textContent = p.name;
+    chips.appendChild(chip);
+  });
+
+  updateSubmissionCounter();
+  showScreen('screen-playing');
+}
+
+function updateSubmissionCounter() {
+  const total = Object.keys(playersData).length;
+  let submitted = 0;
+  Object.values(playersData).forEach(p => {
+    if (p.submissions && p.submissions[currentRound] != null) submitted++;
+  });
+  $('sub-count').textContent = submitted;
+  $('sub-total').textContent = total;
+  const pct = total > 0 ? (submitted / total * 100) : 0;
+  $('counter-fill').style.width = pct + '%';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SHOW RESULTS (REVIEW)
+   ═══════════════════════════════════════════════════════════════ */
+async function showResults() {
+  if (reviewingRound === currentRound) return; // already scored this round
+  reviewingRound = currentRound;
+  stopHostTimer();
+  musicWasPlaying = BGMusic.isPlaying();
+  BGMusic.pause();
+  await db.ref(`rooms/${roomCode}`).update({ status: "reviewing" });
+
+  const scenarioId = gameScenarios[currentRound];
+  const sc = SCENARIO_MAP[scenarioId];
+
+  // Score all players for this round
+  const playerIds = Object.keys(playersData);
+  for (const pid of playerIds) {
+    const p = playersData[pid];
+    if (p.submissions && p.submissions[currentRound]) {
+      const sub = p.submissions[currentRound];
+      // Score was calculated client-side by player; verify and update total
+      const correct = countCorrect(sc, sub.answers || {});
+      const score = correct * 10;
+      const prevTotal = p.totalScore || 0;
+      const newTotal = prevTotal + score;
+
+      // Update in Firebase
+      await db.ref(`rooms/${roomCode}/players/${pid}`).update({ totalScore: newTotal });
+      await db.ref(`rooms/${roomCode}/players/${pid}/submissions/${currentRound}`).update({
+        correct: correct,
+        score: score
+      });
+
+      playersData[pid].totalScore = newTotal;
+      if (!playersData[pid].submissions) playersData[pid].submissions = {};
+      playersData[pid].submissions[currentRound] = { ...sub, correct, score };
+    }
+  }
+
+  renderReviewScreen(sc);
+  showScreen('screen-review');
+}
+
+function countCorrect(scenario, answers) {
+  let correct = 0;
+  scenario.players.forEach(p => {
+    if (answers[p.name] === p.force) correct++;
+  });
+  return correct;
+}
+
+function renderReviewScreen(scenario) {
+  $('review-round-label').textContent = `Round ${currentRound + 1} of ${NUM_ROUNDS}`;
+  $('review-title').textContent = scenario.emoji + ' ' + scenario.title;
+
+  // Correct solution grouped by force
+  const sol = $('solution-content');
+  sol.innerHTML = '';
+  FORCE_ORDER.forEach(forceKey => {
+    const f = FORCES[forceKey];
+    const items = scenario.players.filter(p => p.force === forceKey);
+    if (items.length === 0) return;
+
+    const group = document.createElement('div');
+    group.className = 'force-group';
+
+    const header = document.createElement('div');
+    header.className = 'force-group-header';
+    header.innerHTML = `<span class="force-dot" style="background:${f.dot}"></span>
+      <span style="color:${f.color}">${f.icon} ${f.label}</span>`;
+    group.appendChild(header);
+
+    const list = document.createElement('div');
+    list.className = 'force-group-items';
+    list.innerHTML = items.map(p => `• ${p.name}`).join('<br>');
+    group.appendChild(list);
+
+    sol.appendChild(group);
+  });
+
+  // Leaderboard
+  renderLeaderboard($('leaderboard-review'), true);
+
+  // Update button text
+  const isLast = currentRound >= NUM_ROUNDS - 1;
+  $('btn-next-round').textContent = isLast ? 'Final Results' : 'Next Round';
+}
+
+function renderLeaderboard(container, showRoundScore) {
+  container.innerHTML = '';
+  const sorted = Object.entries(playersData)
+    .map(([id, p]) => ({
+      id,
+      name: p.name,
+      totalScore: p.totalScore || 0,
+      roundScore: (p.submissions && p.submissions[currentRound])
+        ? (p.submissions[currentRound].score || 0) : 0
+    }))
+    .sort((a, b) => b.totalScore - a.totalScore);
+
+  sorted.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'lb-row';
+    if (i === 0) row.classList.add('top-1');
+    else if (i === 1) row.classList.add('top-2');
+    else if (i === 2) row.classList.add('top-3');
+
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+    row.innerHTML = `
+      <div class="lb-rank">${medal}</div>
+      <div class="lb-name">${p.name}</div>
+      ${showRoundScore ? `<div class="lb-round-score">+${p.roundScore}</div>` : ''}
+      <div class="lb-total">${p.totalScore} pts</div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NEXT ROUND / END GAME
+   ═══════════════════════════════════════════════════════════════ */
+async function nextRound() {
+  if (currentRound >= NUM_ROUNDS - 1) {
+    // Game over
+    await db.ref(`rooms/${roomCode}`).update({ status: "finished" });
+    showFinalScreen();
+    return;
+  }
+
+  currentRound++;
+  const timerEnd = Date.now() + ROUND_SECONDS * 1000;
+  await db.ref(`rooms/${roomCode}`).update({
+    status: "playing",
+    currentRound: currentRound,
+    timerEnd: timerEnd
+  });
+
+  showPlayingScreen();
+  startHostTimer(timerEnd);
+  if (musicWasPlaying) BGMusic.resume();
+}
+
+function showFinalScreen() {
+  const sorted = Object.entries(playersData)
+    .map(([id, p]) => ({ name: p.name, totalScore: p.totalScore || 0 }))
+    .sort((a, b) => b.totalScore - a.totalScore);
+
+  // Podium (top 3)
+  const podium = $('podium');
+  podium.innerHTML = '';
+  const medals = ['🥇', '🥈', '🥉'];
+  const podiumOrder = [1, 0, 2]; // display: 2nd, 1st, 3rd
+
+  podiumOrder.forEach(rank => {
+    if (rank >= sorted.length) return;
+    const p = sorted[rank];
+    const place = document.createElement('div');
+    place.className = `podium-place podium-${rank + 1}`;
+    place.innerHTML = `
+      <div class="podium-name">${p.name}</div>
+      <div class="podium-bar">
+        <div class="podium-medal">${medals[rank]}</div>
+        <div class="podium-score">${p.totalScore} pts</div>
+      </div>
+    `;
+    podium.appendChild(place);
+  });
+
+  // Full leaderboard
+  renderLeaderboard($('final-leaderboard'), false);
+
+  showScreen('screen-final');
+  spawnConfetti();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CLEANUP
+   ═══════════════════════════════════════════════════════════════ */
+async function cleanupRoom() {
+  if (roomCode) {
+    if (playersListener) {
+      db.ref(`rooms/${roomCode}/players`).off('value', playersListener);
+      playersListener = null;
+    }
+    // Optionally delete the room
+    await db.ref(`rooms/${roomCode}`).remove().catch(() => {});
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   END GAME (interrupt)
+   ═══════════════════════════════════════════════════════════════ */
+async function endGameNow() {
+  if (!confirm('End the current game and show final results?')) return;
+  stopHostTimer();
+  await db.ref(`rooms/${roomCode}`).update({ status: "finished" });
+  BGMusic.stop();
+  showFinalScreen();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HOST COUNTDOWN TIMER
+   ═══════════════════════════════════════════════════════════════ */
+function startHostTimer(timerEnd) {
+  if (hostTimerInterval) clearInterval(hostTimerInterval);
+
+  function tick() {
+    const now = Date.now();
+    const remaining = Math.max(0, Math.ceil((timerEnd - now) / 1000));
+    const min = Math.floor(remaining / 60);
+    const sec = remaining % 60;
+    $('host-timer').textContent = `${min}:${String(sec).padStart(2, '0')}`;
+
+    if (remaining <= 30) {
+      $('host-timer').classList.add('urgent');
+    } else {
+      $('host-timer').classList.remove('urgent');
+    }
+
+    if (remaining <= 0) {
+      clearInterval(hostTimerInterval);
+      hostTimerInterval = null;
+      // Auto-show results when time is up
+      showResults();
+    }
+  }
+
+  tick();
+  hostTimerInterval = setInterval(tick, 1000);
+}
+
+function stopHostTimer() {
+  if (hostTimerInterval) { clearInterval(hostTimerInterval); hostTimerInterval = null; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BACKGROUND MUSIC
+   Default: royalty-free track from SoundImage.org (Eric Matyas)
+   Or upload your own MP3 via the button.
+   ═══════════════════════════════════════════════════════════════ */
+const BGMusic = (() => {
+  let audio = null, playing = false;
+
+  function init() {
+    if (!audio) {
+      audio = new Audio('https://soundimage.org/wp-content/uploads/2016/12/City-of-Tomorrow_v001_Looping.mp3');
+      audio.loop = true;
+      audio.volume = 0.25;
+    }
+  }
+
+  return {
+    load(file) {
+      const wasPlaying = playing;
+      if (audio) { audio.pause(); }
+      audio = new Audio(URL.createObjectURL(file));
+      audio.loop = true;
+      audio.volume = 0.25;
+      if (wasPlaying) {
+        playing = true;
+        audio.play().catch(() => {});
+      }
+    },
+    start() {
+      init();
+      if (playing) return;
+      playing = true;
+      audio.play().catch(() => {});
+      $('btn-music').textContent = '🎵 Music: ON';
+    },
+    stop() {
+      playing = false;
+      if (audio) { audio.pause(); audio.currentTime = 0; }
+      $('btn-music').textContent = '🎵 Music: OFF';
+    },
+    pause() {
+      if (!playing) return;
+      playing = false;
+      if (audio) audio.pause();
+      $('btn-music').textContent = '🎵 Music: OFF';
+    },
+    resume() {
+      if (playing || !audio) return;
+      playing = true;
+      audio.play().catch(() => {});
+      $('btn-music').textContent = '🎵 Music: ON';
+    },
+    toggle() {
+      if (playing) this.stop(); else this.start();
+    },
+    isPlaying() { return playing; }
+  };
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   EVENT LISTENERS
+   ═══════════════════════════════════════════════════════════════ */
+$('btn-create').addEventListener('click', createGame);
+$('btn-start').addEventListener('click', startGame);
+$('btn-end-round').addEventListener('click', showResults);
+$('btn-next-round').addEventListener('click', nextRound);
+$('btn-music').addEventListener('click', () => BGMusic.toggle());
+$('btn-music-custom').addEventListener('click', () => $('music-file').click());
+$('music-file').addEventListener('change', e => {
+  if (e.target.files[0]) BGMusic.load(e.target.files[0]);
+});
+$('btn-end-game-playing').addEventListener('click', endGameNow);
+$('btn-end-game-review').addEventListener('click', endGameNow);
+$('btn-new-game').addEventListener('click', async () => {
+  BGMusic.stop();
+  await cleanupRoom();
+  createGame();
+});
+
+/* ── Auto-reconnect if session exists ────────── */
+(function init() {
+  const savedCode = sessionStorage.getItem('ff_roomCode');
+  const savedHost = sessionStorage.getItem('ff_hostId');
+  if (savedCode && savedHost) {
+    db.ref(`rooms/${savedCode}`).once('value').then(snap => {
+      if (snap.exists() && snap.val().hostId === savedHost) {
+        roomCode = savedCode;
+        hostId = savedHost;
+        const data = snap.val();
+        gameScenarios = data.scenarios || [];
+        currentRound = data.currentRound || 0;
+
+        listenForPlayers();
+
+        // Restore to correct screen based on status
+        setTimeout(() => {
+          const status = data.status;
+          if (status === 'lobby') {
+            $('room-code').textContent = roomCode;
+            showScreen('screen-lobby');
+          } else if (status === 'playing') {
+            showPlayingScreen();
+          } else if (status === 'reviewing') {
+            const sc = SCENARIO_MAP[gameScenarios[currentRound]];
+            // Need to wait for players data
+            setTimeout(() => {
+              renderReviewScreen(sc);
+              showScreen('screen-review');
+            }, 500);
+          } else if (status === 'finished') {
+            setTimeout(() => showFinalScreen(), 500);
+          }
+        }, 300);
+      } else {
+        sessionStorage.removeItem('ff_roomCode');
+        sessionStorage.removeItem('ff_hostId');
+      }
+    });
+  }
+})();
+
+/* ── QR codes ────────── */
+const PLAY_URL_SHORT = 'https://ulvis.net/JYb5';
+const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(PLAY_URL_SHORT)}`;
+$('welcome-qr').src = qrSrc;
+$('lobby-qr').src = qrSrc;
+</script>
+</body>
+</html>
