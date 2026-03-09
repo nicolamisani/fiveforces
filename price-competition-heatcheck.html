@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Five Forces: Price Competition Heat Check</title>
+<style>
+/* ── Reset & Base ──────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: #2a2a2a;
+  min-height: 100vh;
+  padding: 20px;
+  color: #323232;
+}
+.container { max-width: 800px; margin: 0 auto; }
+
+h1 { text-align: center; color: #fff; font-size: 1.9rem; margin-bottom: 4px; }
+.subtitle { text-align: center; color: rgba(255,255,255,0.65); font-size: 0.88rem; margin-bottom: 20px; line-height: 1.5; }
+
+/* ── Progress bar ───────────────────── */
+.progress-bar {
+  display: flex; gap: 6px; margin-bottom: 20px;
+}
+.progress-dot {
+  flex: 1; height: 6px; border-radius: 3px;
+  background: rgba(255,255,255,0.15);
+  transition: background 0.3s;
+}
+.progress-dot.done { background: #34d399; }
+.progress-dot.active { background: #fff; }
+
+/* ── Score pill ─────────────────────── */
+.score-pill {
+  text-align: center; margin-bottom: 18px;
+  color: rgba(255,255,255,0.7); font-size: 0.85rem;
+}
+.score-pill span { color: #fff; font-weight: 700; }
+
+/* ── Card ───────────────────────────── */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 26px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  margin-bottom: 20px;
+}
+
+/* ── Scenario ───────────────────────── */
+.scenario-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px;
+}
+.scenario-num {
+  background: #0046AD; color: #fff;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.9rem; flex-shrink: 0;
+}
+.scenario-title { font-size: 1.15rem; font-weight: 700; color: #0046AD; }
+
+.scenario-text {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: #444;
+  margin-bottom: 20px;
+  text-align: justify;
+}
+
+/* ── Factor checklist ───────────────── */
+.factors-heading {
+  font-size: 0.85rem; font-weight: 700; color: #666;
+  margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;
+}
+.factor {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 10px; border-radius: 8px;
+  cursor: pointer; user-select: none;
+  transition: background 0.15s;
+  margin-bottom: 2px;
+}
+.factor:hover { background: #f5f5ff; }
+
+.factor-check {
+  flex-shrink: 0; width: 26px; height: 26px;
+  border: 2px solid #ccc; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; transition: all 0.2s; margin-top: 1px;
+  color: transparent;
+}
+.factor.selected .factor-check {
+  border-color: #0046AD; background: #0046AD; color: #fff;
+}
+.factor-content { flex: 1; }
+.factor-label {
+  font-size: 0.88rem; font-weight: 600; color: #333;
+}
+.factor-hint {
+  font-size: 0.75rem; color: #999; margin-top: 2px;
+}
+
+/* ── Feedback states ────────────────── */
+/* Background = is the factor hot? */
+.factor.hot {
+  background: #CC33331A;
+  border-left: 4px solid #CC3333;
+  padding-left: 6px;
+}
+.factor.cool {
+  background: #f8f8f8;
+  border-left: 4px solid #ddd;
+  padding-left: 6px;
+}
+
+/* Checkmark = did you get it right? */
+.factor.right .factor-check {
+  border-color: #337A33; background: #337A33; color: #fff;
+}
+.factor.wrong .factor-check {
+  border-color: #CC3333; background: #CC3333; color: #fff;
+}
+
+/* Tag badge shows HOT or COOL */
+.factor-tag {
+  display: none;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.factor.hot .factor-tag { display: inline-block; background: #CC3333; }
+.factor.cool .factor-tag { display: inline-block; background: #aaa; }
+
+/* Verdict icon */
+.factor-verdict-icon { font-size: 0.8rem; }
+
+.factor-explanation {
+  display: none;
+  font-size: 0.78rem;
+  color: #666;
+  margin-top: 4px;
+  line-height: 1.4;
+  padding-left: 8px;
+  border-left: 3px solid #ddd;
+}
+.factor.hot .factor-explanation,
+.factor.cool .factor-explanation { display: block; }
+.factor.hot .factor-explanation { border-left-color: #CC3333; }
+.factor.cool .factor-explanation { border-left-color: #ccc; }
+
+/* ── Buttons ────────────────────────── */
+.btn-row { display: flex; gap: 10px; margin-top: 18px; justify-content: center; }
+.btn {
+  padding: 11px 28px; border-radius: 10px;
+  font-size: 0.95rem; font-weight: 600; cursor: pointer;
+  border: none; transition: all 0.2s;
+}
+.btn-primary { background: #0046AD; color: #fff; }
+.btn-primary:hover { background: #003580; }
+.btn-primary:disabled { background: #ccc; cursor: default; }
+.btn-secondary { background: #f0f0f0; color: #555; }
+.btn-secondary:hover { background: #e0e0e0; }
+
+/* ── Result banner ──────────────────── */
+.result-banner {
+  text-align: center; padding: 16px;
+  border-radius: 10px; margin-top: 16px;
+  display: none;
+}
+.result-banner.show { display: block; }
+.result-score { font-size: 1.3rem; font-weight: 800; }
+.result-detail { font-size: 0.85rem; margin-top: 4px; }
+
+/* ── Thermometer ────────────────────── */
+.thermo-section {
+  text-align: center; margin-top: 16px;
+  padding: 16px; border-radius: 10px;
+  background: #f8f8fc; display: none;
+}
+.thermo-section.show { display: block; }
+.thermo-label { font-size: 0.8rem; color: #666; margin-bottom: 6px; }
+.thermo-bar-container {
+  width: 100%; height: 16px; border-radius: 8px;
+  background: linear-gradient(90deg, #337A33, #FFA240, #CC3333);
+  position: relative; margin-bottom: 4px;
+}
+.thermo-needle {
+  position: absolute; top: -4px;
+  width: 4px; height: 24px; background: #323232;
+  border-radius: 2px; transition: left 0.5s;
+}
+.thermo-bar-labels {
+  display: flex; justify-content: space-between;
+  font-size: 0.65rem; color: #aaa;
+}
+.thermo-verdict {
+  font-size: 1rem; font-weight: 800; margin-top: 8px;
+}
+
+/* ── Final screen ───────────────────── */
+.final-card { text-align: center; }
+.final-score { font-size: 3.5rem; font-weight: 900; color: #0046AD; }
+.final-label { font-size: 1.1rem; color: #666; margin-bottom: 16px; }
+.final-breakdown { font-size: 0.9rem; color: #555; line-height: 1.8; margin-bottom: 20px; }
+.final-breakdown strong { color: #0046AD; }
+
+.restart-btn {
+  display: inline-block; margin-top: 10px;
+  padding: 12px 32px; border-radius: 10px;
+  background: #0046AD; color: #fff;
+  font-size: 1rem; font-weight: 600;
+  cursor: pointer; border: none; transition: background 0.2s;
+}
+.restart-btn:hover { background: #003580; }
+
+/* ── Footer ─────────────────────────── */
+footer { text-align: center; color: white; margin-top: 25px; opacity: 0.8; font-size: 0.85em; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Five Forces: Price Competition Heat Check</h1>
+  <p class="subtitle">Read each industry scenario carefully, then identify which of the 9 factors<br>that heat up price competition are present. Not every factor applies!</p>
+
+  <div class="progress-bar" id="progressBar"></div>
+  <div class="score-pill" id="scorePill">Score: <span id="scoreDisplay">0</span> / <span id="maxDisplay">0</span></div>
+
+  <div id="gameArea"></div>
+  <footer>30402 Principles of Management &mdash; Week 05 Industry Analysis and the Five Forces</footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCENARIO DATA
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const factors = [
+  { id: 'A', short: 'Many sellers', label: 'A. Many sellers in the market' },
+  { id: 'B', short: 'Stagnant/declining', label: 'B. Stagnant or declining industry' },
+  { id: 'C', short: 'Different costs', label: 'C. Firms have different costs' },
+  { id: 'D', short: 'Excess capacity', label: 'D. Some firms have excess capacity' },
+  { id: 'E', short: 'Undifferentiated', label: 'E. Undifferentiated products / low switching costs' },
+  { id: 'F', short: 'Prices unobservable', label: 'F. Prices unobservable or slow to adjust' },
+  { id: 'G', short: 'No price leadership', label: 'G. No price leadership or cooperative pricing' },
+  { id: 'H', short: 'Exit barriers', label: 'H. Strong exit barriers' },
+  { id: 'I', short: 'High elasticity', label: 'I. High industry price elasticity of demand' },
+];
+
+const scenarios = [
+  {
+    title: "European Short-Haul Airlines",
+    text: `The European short-haul market is served by over thirty carriers competing on largely overlapping route networks. Ryanair, the continent's largest low-cost carrier, operates a fleet of identical Boeing 737s and achieves unit costs roughly 40% below those of legacy airlines such as Lufthansa and Air France, which still fly short-haul routes using older, less fuel-efficient aircraft alongside their long-haul operations. Several carriers, including Wizz Air and Norwegian, expanded their fleets aggressively after 2021, ordering hundreds of new aircraft that are now entering service even as passenger growth on many mature routes has plateaued. A seat from Milan to Barcelona on any of these airlines is virtually interchangeable: passengers compare options on Skyscanner and Google Flights in seconds, and switching from one carrier to another takes a single click. No carrier sets a price that others follow; instead, fares fluctuate constantly through dynamic pricing algorithms that undercut competitors in real time. Leisure travellers, who make up the bulk of demand on these routes, are extremely responsive to price differences \u2014 a \u20ac20 reduction can shift thousands of bookings in a single weekend.`,
+    correct: ['A','C','D','E','G','I'],
+    explanations: {
+      A: "Over thirty carriers compete on overlapping routes \u2014 clearly many sellers.",
+      B: "The scenario says passenger growth has \u201cplateaued\u201d on mature routes, but doesn\u2019t describe an outright decline. This is borderline; the strongest reading is that growth is flat on some routes, making this a judgment call. The industry overall is not described as declining.",
+      C: "Ryanair\u2019s unit costs are 40% below legacy airlines \u2014 a stark cost difference that incentivises the efficient player to undercut.",
+      D: "Airlines expanded fleets aggressively and new aircraft are entering service even as growth plateaus \u2014 classic excess capacity.",
+      E: "A seat is \u201cvirtually interchangeable,\u201d passengers compare and switch in one click \u2014 undifferentiated with near-zero switching costs.",
+      F: "Prices are highly visible on comparison sites (Skyscanner, Google Flights) \u2014 the opposite of unobservable. This factor does NOT apply.",
+      G: "No carrier sets a price others follow; algorithms undercut in real time \u2014 no price leadership or coordination.",
+      H: "Aircraft can be leased, redeployed to other routes, or returned to lessors. The scenario doesn\u2019t describe exit barriers. This factor does NOT apply.",
+      I: "Leisure travellers are \u201cextremely responsive\u201d and a \u20ac20 cut shifts thousands of bookings \u2014 high price elasticity.",
+    }
+  },
+  {
+    title: "Global Luxury Hotel Chains",
+    text: `The global luxury hotel market \u2014 led by Four Seasons, Mandarin Oriental, Aman, Rosewood, and the luxury tiers of Marriott (Ritz-Carlton, St. Regis) and Accor (Raffles, Orient Express) \u2014 is growing at roughly 8\u201310% per year, fuelled by rising affluence in Asia and the post-pandemic appetite for experiential travel. Each brand cultivates a fiercely distinct identity: an Aman resort in Bali offers a radically different experience from a St. Regis in Manhattan or a Mandarin Oriental in Geneva. Guests choose properties for the brand promise, the destination, and the specific property\u2019s character. Constructing a luxury hotel costs $1\u20132 million per room, and properties are typically held for decades on long-term leases or as owned real estate; converting a purpose-built luxury hotel into anything else \u2014 offices, apartments \u2014 requires extensive and costly renovation, making divestment extremely difficult. Despite the robust growth, luxury hotels worldwide operate at about 70% average occupancy, meaning nearly a third of rooms go unsold on any given night. A hotel room is the ultimate perishable product: an unsold night\u2019s revenue is lost forever. To fill rooms discreetly, hotels negotiate confidential corporate rates offering 15\u201330% discounts to major firms and sell distressed inventory through opaque channels like Hotwire, where guests see the star rating and neighbourhood but not the hotel name until after paying. Published rack rates appear on brand websites and OTAs, but the actual price paid varies enormously depending on the channel, loyalty status, time of booking, and corporate agreements \u2014 making the true price landscape difficult for competitors to read. Affluent leisure travellers, the core demand segment, are not especially sensitive to price differences: a guest choosing between the Four Seasons and the Peninsula in Paris is unlikely to switch for a \u20ac50 saving. When one chain raises rates in a tier, others typically follow within a season, maintaining the segment\u2019s premium positioning.`,
+    correct: ['D','F','H'],
+    explanations: {
+      A: "The market is dominated by a handful of major brand families (Four Seasons, Aman, Marriott Luxury, Accor Luxury, etc.) \u2014 this is a concentrated market, not \u201cmany sellers.\u201d NOT present.",
+      B: "The market is growing at 8\u201310% per year \u2014 the opposite of stagnant. NOT present.",
+      C: "The scenario does not highlight significant cost differences between competing luxury chains. All face similarly high construction and operating costs. NOT present as a driver of price competition.",
+      D: "70% occupancy means 30% of rooms go unsold every night, and a hotel room is a perishable product \u2014 this is excess capacity that creates pressure to discount, even if done discreetly.",
+      E: "Each brand cultivates a \u201cfiercely distinct identity\u201d and guests choose on brand, destination, and character \u2014 these are highly differentiated products. NOT present.",
+      F: "Corporate rates are confidential (15\u201330% off), opaque channels hide the hotel\u2019s name, and the actual price paid varies enormously by channel and status. Competitors struggle to read each other\u2019s true pricing \u2014 prices are substantially unobservable.",
+      G: "When one chain raises rates, others \u201ctypically follow within a season\u201d \u2014 this describes implicit price leadership. The factor asks about the ABSENCE of leadership, so it does NOT apply.",
+      H: "$1\u20132M per room construction cost, decades-long holding periods, long-term leases, and costly conversion to alternative uses \u2014 very strong exit barriers.",
+      I: "Affluent guests are \u201cnot especially sensitive to price differences\u201d and won\u2019t switch for a \u20ac50 saving \u2014 low price elasticity. NOT present.",
+    }
+  },
+  {
+    title: "Container Shipping After the Boom",
+    text: `The global container shipping industry entered 2025 facing the hangover from its extraordinary 2021\u201322 profits. During the supply-chain crisis, carriers had ordered a record number of mega-vessels \u2014 ships carrying over 20,000 TEU \u2014 that are now being delivered into a market where trade volumes have fallen 6% from their peak. The industry counts about a dozen major carriers, but several hundred smaller regional operators also compete on specific trade lanes. A 40-foot container is a standardised unit: shippers care about price and schedule reliability, not the carrier\u2019s brand. Freight rates are published weekly on the Shanghai Containerized Freight Index and updated on digital platforms like Freightos, making every carrier\u2019s pricing instantly visible. The industry has historically attempted coordination through alliances (2M, Ocean Alliance, THE Alliance), but these are under regulatory scrutiny and have not prevented aggressive discounting when demand weakens. Cost structures diverge significantly: Mediterranean Shipping Company operates many older, less fuel-efficient vessels, while Maersk and CMA CGM have invested heavily in dual-fuel methanol ships with lower operating costs. A mega-vessel costs over $200 million and has a 25-year lifespan; scrapping a ship that is only a few years old is virtually unthinkable, and there is no alternative use for a container ship.`,
+    correct: ['B','C','D','E','G','H'],
+    explanations: {
+      A: "\u201cAbout a dozen major carriers\u201d is a moderately concentrated market, not \u201cmany sellers\u201d in the classic sense. The hundreds of smaller regional operators add nuance, but the industry is dominated by a handful of alliances. This is a judgment call \u2014 the strongest reading is that the market is an oligopoly, so this factor does NOT clearly apply.",
+      B: "Trade volumes have fallen 6% from their peak \u2014 the industry is declining from its boom.",
+      C: "MSC operates older, less efficient vessels while Maersk invested in modern dual-fuel ships \u2014 significant cost differences that give efficient carriers an incentive to undercut.",
+      D: "Record orders of mega-vessels being delivered into a shrinking market \u2014 textbook excess capacity.",
+      E: "A container is a standardised unit; shippers care about price and schedule, not brand \u2014 undifferentiated.",
+      F: "Freight rates are published weekly on indices and digital platforms \u2014 prices are highly observable. NOT present.",
+      G: "Alliances have \u201cnot prevented aggressive discounting\u201d and are under regulatory scrutiny \u2014 cooperative pricing is failing.",
+      H: "Ships cost $200M+, have a 25-year life, cannot be repurposed, and scrapping new vessels is \u201cunthinkable\u201d \u2014 very strong exit barriers.",
+      I: "The scenario does not describe shippers as particularly responsive to price changes at the industry level. Shipping is often a necessity for global trade. NOT clearly present.",
+    }
+  },
+  {
+    title: "US Subscription Streaming Video",
+    text: `By 2025, the American household can choose from Netflix, Amazon Prime Video, Disney+, Max, Apple TV+, Peacock, Paramount+, and several smaller services. After a decade of explosive growth, the total number of US streaming subscriptions has begun to stagnate, as most potential subscribers have already signed up for at least one service and many are experiencing \u201csubscription fatigue.\u201d Each platform is investing billions in exclusive original content \u2014 Netflix spent $17 billion on content in 2024 alone \u2014 to differentiate itself, and hit series like \u201cSquid Game\u201d or \u201cThe Last of Us\u201d cannot be watched anywhere else. However, between major releases, subscribers often feel that one service looks much like another. Cancelling and switching is trivially easy: a subscriber can drop Netflix and join Disney+ in under two minutes, and many households rotate through services monthly. The economics of content production vary dramatically: Apple subsidises Apple TV+ as a loss leader to sell devices, Amazon bundles Prime Video with its retail membership, while pure-play streamers like Netflix must cover content costs entirely from subscription revenue. Content libraries represent massive sunk investments that have no residual value outside the platform. Monthly prices are posted prominently on each service\u2019s website, and comparison articles rank them constantly. No single service acts as a price leader; instead, each quietly watches the others and periodically launches promotional offers \u2014 \u201c$1.99/month for three months\u201d \u2014 to poach subscribers.`,
+    correct: ['A','B','C','E','G','H'],
+    explanations: {
+      A: "Eight named services plus \u201cseveral smaller\u201d \u2014 many sellers competing for the same household budgets.",
+      B: "Total subscriptions have \u201cbegun to stagnate\u201d and subscribers face fatigue \u2014 a maturing, near-stagnant market.",
+      C: "Apple subsidises its service, Amazon bundles it, while Netflix must cover all costs from subscriptions \u2014 drastically different cost structures that shape competitive behaviour.",
+      D: "Content libraries are large, but the issue is sunk cost, not idle capacity in the traditional sense. Platforms are not sitting on unused production capability. NOT the best fit.",
+      E: "Between major releases, \u201cone service looks much like another,\u201d and switching takes under two minutes \u2014 low differentiation (outside hit windows) with almost zero switching costs.",
+      F: "Prices are posted prominently and comparison articles rank them constantly \u2014 highly observable. NOT present.",
+      G: "No single service acts as price leader; promotional offers to poach subscribers are the norm \u2014 no cooperative pricing.",
+      H: "Content libraries represent \u201cmassive sunk investments with no residual value\u201d outside the platform \u2014 strong exit barriers. Walking away means writing off billions.",
+      I: "Subscription fatigue suggests moderate sensitivity, but overall streaming is a relatively small household expense and demand at the industry level is not described as highly elastic. NOT clearly present.",
+    }
+  },
+  {
+    title: "Indian Cement Manufacturing",
+    text: `India\u2019s cement industry produces over 400 million tonnes annually, served by roughly 40 major producers and hundreds of smaller regional plants scattered across the subcontinent. Despite strong infrastructure spending and urbanisation, the industry has consistently operated at only 65\u201370% capacity utilisation, because new kilns have been built faster than demand has grown. A bag of ordinary Portland cement from UltraTech is chemically indistinguishable from one produced by Ambuja, Shree, or any local manufacturer: contractors buy on price and availability. However, cement is heavy and expensive to transport, so pricing operates in regional pockets. Distributors negotiate prices locally, and it can take weeks for a price change by one producer to be noticed by rivals operating in a neighbouring state. Cost structures differ markedly: Shree Cement\u2019s modern plants in Rajasthan achieve energy costs 20\u201325% below the industry average, while older plants in eastern India burn less efficient fuels. New kilns require investments of $150\u2013200 million and have operating lives of 40\u201350 years; even unprofitable plants typically continue running because shutdown costs are high and the heavy equipment has no alternative use. There is no dominant national price leader, and attempts at regional coordination have repeatedly collapsed within months.`,
+    correct: ['A','C','D','E','F','G','H'],
+    explanations: {
+      A: "Roughly 40 major producers and hundreds of smaller plants \u2014 clearly many sellers.",
+      B: "Despite the capacity issue, India\u2019s demand is growing due to infrastructure spending and urbanisation. The industry is NOT stagnant or declining.",
+      C: "Shree Cement\u2019s energy costs are 20\u201325% below average, while older plants use less efficient fuels \u2014 significant cost heterogeneity.",
+      D: "The industry operates at only 65\u201370% capacity \u2014 substantial excess capacity.",
+      E: "Portland cement is \u201cchemically indistinguishable\u201d across producers; contractors buy on price \u2014 a textbook commodity.",
+      F: "Prices are negotiated locally by distributors, and it takes weeks for a rival\u2019s price change to be noticed in another state \u2014 prices are slow to propagate and hard to observe.",
+      G: "No dominant national price leader, and regional coordination attempts have \u201crepeatedly collapsed\u201d \u2014 no cooperative pricing.",
+      H: "Kilns cost $150\u2013200M, last 40\u201350 years, have no alternative use, and shutdown costs are high \u2014 very strong exit barriers.",
+      I: "Cement demand is driven by construction projects and infrastructure policy, not primarily by cement prices. Industry demand is relatively inelastic. NOT present.",
+    }
+  },
+];
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GAME STATE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+let currentScenario = 0;
+let totalCorrect = 0;
+let totalPossible = 0;
+let scenarioResults = [];
+let selectedFactors = new Set();
+let submitted = false;
+
+function init() {
+  currentScenario = 0;
+  totalCorrect = 0;
+  totalPossible = 0;
+  scenarioResults = [];
+  renderProgress();
+  renderScenario();
+}
+
+function renderProgress() {
+  const bar = document.getElementById('progressBar');
+  bar.innerHTML = scenarios.map((_, i) => {
+    let cls = 'progress-dot';
+    if (i < currentScenario) cls += ' done';
+    else if (i === currentScenario) cls += ' active';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+  document.getElementById('scoreDisplay').textContent = totalCorrect;
+  document.getElementById('maxDisplay').textContent = totalPossible;
+}
+
+function renderScenario() {
+  if (currentScenario >= scenarios.length) {
+    renderFinal();
+    return;
+  }
+
+  selectedFactors = new Set();
+  submitted = false;
+  const s = scenarios[currentScenario];
+
+  const area = document.getElementById('gameArea');
+  area.innerHTML = `
+    <div class="card">
+      <div class="scenario-header">
+        <div class="scenario-num">${currentScenario + 1}</div>
+        <div class="scenario-title">${s.title}</div>
+      </div>
+      <div class="scenario-text">${s.text}</div>
+
+      <div class="factors-heading">Which factors heat up price competition in this industry?</div>
+      <div id="factorList">
+        ${factors.map(f => `
+          <div class="factor" data-id="${f.id}" onclick="toggleFactor('${f.id}')">
+            <div class="factor-check"><span class="factor-verdict-icon">\u2713</span></div>
+            <div class="factor-content">
+              <div class="factor-label">${f.label}<span class="factor-tag" id="tag_${f.id}"></span></div>
+              <div class="factor-explanation" id="expl_${f.id}"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="feedback-legend" id="feedbackLegend" style="display:none; margin-top:14px; margin-bottom:6px; flex-wrap:wrap; gap:16px; justify-content:center; font-size:0.75rem; color:#666;">
+        <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#CC33331A;border-left:3px solid #CC3333"></span> Red background = hot factor</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#f0f0f0;border-left:3px solid #ddd"></span> Gray background = cool factor</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#337A33;color:#fff;font-size:10px;text-align:center;line-height:14px;font-weight:700">\u2713</span> Correct answer</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#CC3333;color:#fff;font-size:10px;text-align:center;line-height:14px;font-weight:700">\u2717</span> Wrong answer</span>
+      </div>
+
+      <div class="result-banner" id="resultBanner">
+        <div class="result-score" id="resultScore"></div>
+        <div class="result-detail" id="resultDetail"></div>
+      </div>
+
+      <div class="thermo-section" id="thermoSection">
+        <div class="thermo-label">Correct temperature for this industry:</div>
+        <div class="thermo-bar-container">
+          <div class="thermo-needle" id="thermoNeedle" style="left:0%"></div>
+        </div>
+        <div class="thermo-bar-labels">
+          <span>Cool (profitable)</span><span>Warm</span><span>Red hot</span>
+        </div>
+        <div class="thermo-verdict" id="thermoVerdict"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="submitBtn" onclick="submitAnswer()">Check Answer</button>
+        <button class="btn btn-secondary" id="nextBtn" onclick="nextScenario()" style="display:none">Next Scenario \u2192</button>
+      </div>
+    </div>
+  `;
+  renderProgress();
+}
+
+function toggleFactor(id) {
+  if (submitted) return;
+  if (selectedFactors.has(id)) selectedFactors.delete(id);
+  else selectedFactors.add(id);
+
+  document.querySelectorAll('.factor').forEach(el => {
+    el.classList.toggle('selected', selectedFactors.has(el.dataset.id));
+  });
+}
+
+function submitAnswer() {
+  if (submitted) return;
+  submitted = true;
+
+  const s = scenarios[currentScenario];
+  const correctSet = new Set(s.correct);
+  let hits = 0;
+  let misses = 0;
+  let falsePositives = 0;
+
+  factors.forEach(f => {
+    const el = document.querySelector(`.factor[data-id="${f.id}"]`);
+    const isSelected = selectedFactors.has(f.id);
+    const isHot = correctSet.has(f.id);
+    const explEl = document.getElementById(`expl_${f.id}`);
+    const tagEl = document.getElementById(`tag_${f.id}`);
+    const iconEl = el.querySelector('.factor-verdict-icon');
+    explEl.textContent = s.explanations[f.id];
+
+    const gotItRight = (isSelected && isHot) || (!isSelected && !isHot);
+
+    // Background = hot or cool (the truth)
+    // Checkmark = right or wrong (student's performance)
+    el.className = `factor ${isHot ? 'hot' : 'cool'} ${gotItRight ? 'right' : 'wrong'}`;
+    tagEl.textContent = isHot ? 'Hot' : 'Cool';
+    iconEl.textContent = gotItRight ? '\u2713' : '\u2717';
+
+    if (gotItRight) hits++;
+    else if (!isSelected && isHot) misses++;
+    else falsePositives++;
+  });
+
+  // Score: each factor is a binary decision (select or not). Max = 9.
+  const scenarioScore = hits;
+  const scenarioMax = 9;
+  totalCorrect += scenarioScore;
+  totalPossible += scenarioMax;
+  scenarioResults.push({ title: s.title, score: scenarioScore, max: scenarioMax, nCorrect: s.correct.length });
+
+  // Show feedback legend
+  document.getElementById('feedbackLegend').style.display = 'flex';
+
+  // Result banner
+  const banner = document.getElementById('resultBanner');
+  banner.classList.add('show');
+  document.getElementById('resultScore').textContent = `${scenarioScore} / ${scenarioMax} correct decisions`;
+
+  let detail = '';
+  if (scenarioScore === 9) detail = 'Perfect! You identified every factor correctly.';
+  else if (scenarioScore >= 7) detail = 'Well done! You missed a few nuances.';
+  else if (scenarioScore >= 5) detail = 'Decent, but review the explanations carefully.';
+  else detail = 'This one was tricky. Read the explanations to understand why.';
+  document.getElementById('resultDetail').textContent = detail;
+  banner.style.background = scenarioScore >= 8 ? 'rgba(51,122,51,0.1)' : scenarioScore >= 6 ? 'rgba(255,162,64,0.1)' : 'rgba(204,51,51,0.1)';
+  banner.style.color = scenarioScore >= 8 ? '#337A33' : scenarioScore >= 6 ? '#b37300' : '#CC3333';
+
+  // Thermometer
+  const thermoSection = document.getElementById('thermoSection');
+  thermoSection.classList.add('show');
+  const actualCount = s.correct.length;
+  const pct = (actualCount / 9) * 100;
+  document.getElementById('thermoNeedle').style.left = `${pct}%`;
+  let verdict, vColor;
+  if (actualCount <= 2) { verdict = `Cool (${actualCount}/9 factors) \u2014 this industry can sustain profits`; vColor = '#337A33'; }
+  else if (actualCount <= 4) { verdict = `Warm (${actualCount}/9 factors) \u2014 some pressure on margins`; vColor = '#FFA240'; }
+  else if (actualCount <= 6) { verdict = `Hot (${actualCount}/9 factors) \u2014 significant price pressure`; vColor = '#e85d26'; }
+  else { verdict = `Red Hot (${actualCount}/9 factors) \u2014 margin destruction likely`; vColor = '#CC3333'; }
+  document.getElementById('thermoVerdict').textContent = verdict;
+  document.getElementById('thermoVerdict').style.color = vColor;
+
+  // Update buttons
+  document.getElementById('submitBtn').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'inline-block';
+  if (currentScenario === scenarios.length - 1) {
+    document.getElementById('nextBtn').textContent = 'See Final Results';
+  }
+
+  renderProgress();
+}
+
+function nextScenario() {
+  currentScenario++;
+  renderScenario();
+}
+
+function renderFinal() {
+  const pct = Math.round((totalCorrect / totalPossible) * 100);
+  let grade, gColor;
+  if (pct >= 90) { grade = 'Excellent'; gColor = '#337A33'; }
+  else if (pct >= 75) { grade = 'Good'; gColor = '#40B3BC'; }
+  else if (pct >= 60) { grade = 'Fair'; gColor = '#FFA240'; }
+  else { grade = 'Needs Review'; gColor = '#CC3333'; }
+
+  const area = document.getElementById('gameArea');
+  area.innerHTML = `
+    <div class="card final-card">
+      <div class="final-score" style="color:${gColor}">${pct}%</div>
+      <div class="final-label">${grade} \u2014 ${totalCorrect} / ${totalPossible} correct decisions</div>
+      <div class="final-breakdown">
+        ${scenarioResults.map((r, i) => `
+          <strong>${i+1}. ${r.title}:</strong> ${r.score}/${r.max}
+          (industry had ${r.nCorrect} active factor${r.nCorrect !== 1 ? 's' : ''})<br>
+        `).join('')}
+      </div>
+      <button class="restart-btn" onclick="init()">Play Again</button>
+    </div>
+  `;
+
+  // Update progress
+  document.querySelectorAll('.progress-dot').forEach(d => d.classList.add('done'));
+  document.getElementById('scoreDisplay').textContent = totalCorrect;
+  document.getElementById('maxDisplay').textContent = totalPossible;
+}
+
+// Start
+init();
+</script>
+</body>
+</html>
